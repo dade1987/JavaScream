@@ -277,25 +277,25 @@ function searchJqueryListeners () {
 }
 
 async function testUrlParamFiltering () {
-  const params = getAllUrlParams(document.location.href)
 
-  const paramsEntities=Object.entries(params)
+  const paramsEntitiesTemp=Object.entries(getAllUrlParams(document.location.href))
   // console.log(paramsEntities)
-  for (let i=0; i < paramsEntities.length; i++) {
+  for (let i=0; i < paramsEntitiesTemp.length; i++) {
+    const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
+
     const v = paramsEntities[i]
-    v[1] = v[1] + '"><script>console.log("PARAMETRO_VULNERABILE_XSS")</script><'
+    v[1] = v[1] + '"><script>alert("PARAMETRO_VULNERABILE_XSS")</script><div '
 
     const mod = paramsEntities.map((v) => {
-      return v[0] + '=' + v[1] + '"><script>alert("PARAMETRO_VULNERABILE_XSS")</script><'
+      return v[0] + '=' + v[1]
     })
 
     const newUrl= document.location.origin + document.location.pathname + '?' + mod.join('&')
 
-    // console.log('Test XSS parametro' + v[0], newUrl)
-
     await $.get(newUrl).done(function( data ) {
       if(data.indexOf('PARAMETRO_VULNERABILE_XSS')!==-1){
         console.log('Parametro "'+v[0]+'" Vulnerabile ad attachi XSS')
+        console.log('url', newUrl)
         // console.log(data)
       }
     })
