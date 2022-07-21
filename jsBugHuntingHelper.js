@@ -21,7 +21,7 @@ function recursiveEnumerate (object, level, previousPath) {
   level++
   const objKeys = Object.keys(object)
   for (let o = 0; o < objKeys.length; o++) {
-    if (object[objKeys[o]] !== null && alreadyProcessedFunctions.indexOf(objKeys[o]) === -1 && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== 'recursiveEnumerate') {
+    if (object[objKeys[o]] !== null && alreadyProcessedFunctions.indexOf(objKeys[o]) === -1 && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions') {
       alreadyProcessedFunctions.push(objKeys[o])
       try {
         const functionToString = object[objKeys[o]].toString().replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' ')
