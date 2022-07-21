@@ -31,7 +31,7 @@ function recursiveEnumerate (object, level, previousPath) {
             console.log(level, objKeys[o], object[objKeys[o]], functionToString.substr(ind - 20, 50))
           })
         })
-        if (level < 5 && objKeys[o] !== 'set' && objKeys[o] !== 'push') {
+        if (objKeys[o] !== 'set' && objKeys[o] !== 'push') {
           recursiveEnumerate(object[objKeys[o]], level)
         }
       } catch (e) {
