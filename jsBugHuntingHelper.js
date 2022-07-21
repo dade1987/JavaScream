@@ -6,8 +6,10 @@
 
 'use strict'
 
+var xssScanEnabled = false
 
 var alreadyProcessedFunctions = []
+
 
 function SearchElement(description, type, string) {
   this.description = description;
@@ -296,13 +298,16 @@ console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
 console.log('----------------------------------------------------------')
 console.log('\n') 
 
+
 recursiveEnumerate(window, 0)
 recursiveEnumerate(listAllEventListeners(), 0)
 searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0, 0)
 recursiveEnumerate(getjQueryEventHandlers(document), 0)
 searchJqueryListeners()
 console.log('Contenuto cookie', document.cookie)
+if(xssScanEnabled === true){
 testUrlParamFiltering()
+}
 
 console.log('\n')
 console.log('----------------------------------------------------------')
