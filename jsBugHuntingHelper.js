@@ -6,7 +6,7 @@
 
 'use strict'
 
-var xssScanEnabled = false
+var xssScanEnabled = true
 
 var alreadyProcessedFunctions = []
 
@@ -40,7 +40,7 @@ var searchElements = [
   new SearchElement('json file', 'string', '.json'),
   new SearchElement('mailto protocol', 'string', 'mailto:'),
   new SearchElement('something on mysql', 'string', 'mysql'),
-  new SearchElement('something on email', 'string', 'email'),
+  new SearchElement('something on email', 'string', '"email"'),
   new SearchElement('something on username', 'string', '"username"'),
   new SearchElement('something on username', 'string', '"user"'),
   new SearchElement('something on password', 'string', '"password"'),
@@ -279,18 +279,27 @@ function searchJqueryListeners () {
 async function testUrlParamFiltering () {
   const params = getAllUrlParams(document.location.href)
 
-  const mod = Object.entries(params).map((v) => {
-    return v[0] + '=' + v[1] + '"><script>console.log("PARAMETRO_VULNERABILE_XSS")</script><'
-  })
+  const paramsEntities=Object.entries(params)
+  // console.log(paramsEntities)
+  for (let i=0; i < paramsEntities.length; i++) {
+    const v = paramsEntities[i]
+    v[1] = v[1] + '"><script>console.log("PARAMETRO_VULNERABILE_XSS")</script><'
 
-  const newUrl= document.location.origin + document.location.pathname + '?' + mod.join('&')
+    const mod = paramsEntities.map((v) => {
+      return v[0] + '=' + v[1] + '"><script>alert("PARAMETRO_VULNERABILE_XSS")</script><'
+    })
 
-  await $.get(newUrl).done(function( data ) {
-    if(data.indexOf('PARAMETRO_VULNERABILE_XSS')!==-1){
-      console.log('Parametri Vulnerabili ad attachi XSS')
-      console.log(data)
-    }
-  })
+    const newUrl= document.location.origin + document.location.pathname + '?' + mod.join('&')
+
+    // console.log('Test XSS parametro' + v[0], newUrl)
+
+    await $.get(newUrl).done(function( data ) {
+      if(data.indexOf('PARAMETRO_VULNERABILE_XSS')!==-1){
+        console.log('Parametro "'+v[0]+'" Vulnerabile ad attachi XSS')
+        // console.log(data)
+      }
+    })
+  }
 }
 
 console.log('Created by Davide Cavallini')
