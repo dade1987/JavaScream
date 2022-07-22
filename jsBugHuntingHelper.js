@@ -277,6 +277,19 @@ function searchJqueryListeners() {
     recursiveEnumerate(jQueryListeners, 0)
 }
 
+function getPageHeaders(url) {
+    var xhr = $.ajax({
+        type: 'GET',
+        url:  url, 
+        success: function(output, status) { 
+          console.log('Page Headers', xhr.getAllResponseHeaders())
+        },
+        error: function(output) {
+          console.log("Error in API call");
+        }
+    });
+}
+
 async function testXSS() {
 
     const payloads = ['"><script>alert("XSS_VULNERABLE_PARAM")</script><div ', "'"]
@@ -345,6 +358,7 @@ searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s
 recursiveEnumerate(getjQueryEventHandlers(document), 0)
 searchJqueryListeners()
 console.log('Contenuto cookie', document.cookie)
+getPageHeaders(document.location.href)
 if (xssScanEnabled === true) {
     testXSS()
 }
