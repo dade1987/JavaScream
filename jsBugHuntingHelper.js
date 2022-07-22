@@ -288,7 +288,8 @@ function jsHuntingHelper () {
   }
 
   async function testXSS () {
-    const payloads = ['"><script>alert("XSS_VULNERABLE_PARAM")</script><div ', "'"]
+    const payloads = ['<script>alert("XSS_VULNERABLE_PARAM")</script>',
+      '"><script>alert("XSS_VULNERABLE_PARAM")</script><div ', "'"]
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
