@@ -306,7 +306,7 @@
 
         // eslint-disable-next-line no-undef
         await $.get(newUrl).done(function (data) {
-          if (data.indexOf('XSS_VULNERABLE_PARAM') !== -1) {
+          if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
             console.log('Parametro "' + v[0] + '" Vulnerabile ad attacchi XSS')
             console.log('url', newUrl)
           }
