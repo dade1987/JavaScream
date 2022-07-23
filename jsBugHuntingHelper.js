@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 // Created by Davide Cavallini
+// You'll find interesting functions and some bugs
 
 // linkedin: https://www.linkedin.com/in/davidecavallini/
 
