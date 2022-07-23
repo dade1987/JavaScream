@@ -21,7 +21,7 @@ copy and paste this code in the address bar (there could be cache problems with 
 
 
 ```
-javascript:!function(){function b(){console.log("jQuery loaded");let a=document.createElement("script");a.src="//cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@main/jsBugHuntingHelper.min.js",document.body.appendChild(a),a.onload=function(){jBHH.init()}}if(window.jQuery)b();else{let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){b()}}}();
+javascript:!function(){function b(){console.log("jQuery loaded");let a=document.createElement("script");a.src="//cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper/jsBugHuntingHelper.min.js",document.body.appendChild(a),a.onload=function(){jBHH.init()}}if(window.jQuery)b();else{let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){b()}}}();
 ```
 
 Created by Davide Cavallini - Linkedin: https://www.linkedin.com/in/davidecavallini/
