@@ -5,7 +5,7 @@
 // This tool is studied to help Ethical Hackers to find vulnerable points in webpage's javascript
 // Just open the webpage, select all this code, copy and past in browser's console
 // eslint-disable-next-line no-unused-vars
-function jsBugHuntingHelper () {
+function JsBugHuntingHelper () {
   'use strict'
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
@@ -396,5 +396,8 @@ function jsBugHuntingHelper () {
     }
   }
 }
+
+// eslint-disable-next-line no-var, no-unused-vars
+var jBHH = new JsBugHuntingHelper()
 
 // aggiungere funzione $.post che prenda parametri da console e faccia fuzzing come $.get sopra
