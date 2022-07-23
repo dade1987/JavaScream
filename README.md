@@ -22,6 +22,7 @@ IN FIREFOX AND TOR BROWSER
 BEST METHOD (BECAUSE CDN CACHE MAY HAVE AN OLD VERSION)
 
 1- open the webpage
+
 2- if jQuery is missing, copy this in the browser console
 ```
 if(!window.jQuery){let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){console.log("jQuery Loaded")}}
