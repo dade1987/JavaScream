@@ -400,3 +400,6 @@ function JsBugHuntingHelper () {
 
 // eslint-disable-next-line no-var, no-unused-vars
 var jBHH = new JsBugHuntingHelper()
+
+// ONLY CHROME AND EDGE
+// javascript:(function () { var a = document.createElement('script'); a.src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"; document.body.appendChild(a); a.onload = function () { var b = document.createElement('script'); b.src="//cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper/jsBugHuntingHelper.min.js"; document.body.appendChild(b); b.onload = function () { jBHH.init() } } })();
