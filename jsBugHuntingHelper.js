@@ -9,7 +9,7 @@ function jsBugHuntingHelper () {
   'use strict'
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
-  function init () {
+  this.init = function () {
     const xssScanEnabled = true
     const sqlInjectionScanEnabled = true
     const RCEscanEnabled = true
