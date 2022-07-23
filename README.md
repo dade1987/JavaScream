@@ -8,7 +8,12 @@ This tool is studied to help ethical hackers to find vulnerable points in webpag
 if(!window.jQuery){let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){console.log("jQuery Loaded")}}
 ```
 
-3- copy all the code in jsBugHuntingHelper.min.js in browser console.
+3- copy all the code in https://raw.githubusercontent.com/dade1987/jsBugHuntingHelper/main/jsBugHuntingHelper.min.js in browser console.
+
+4- type this in console
+```
+jBHH.init()
+```
 
 OR
 
