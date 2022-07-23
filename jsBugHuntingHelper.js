@@ -7,13 +7,15 @@
 // eslint-disable-next-line no-unused-vars
 function JsBugHuntingHelper () {
   'use strict'
+
+  const alreadyProcessedFunctions = []
+  const xssScanEnabled = true
+  const sqlInjectionScanEnabled = true
+  const RCEscanEnabled = true
+
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
   this.init = function () {
-    const xssScanEnabled = true
-    const sqlInjectionScanEnabled = true
-    const RCEscanEnabled = true
-
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
     console.log('----------------------------------------------------------')
@@ -40,8 +42,6 @@ function JsBugHuntingHelper () {
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
   }
-
-  const alreadyProcessedFunctions = []
 
   function SearchElement (description, type, string) {
     this.description = description
@@ -287,6 +287,7 @@ function JsBugHuntingHelper () {
   function searchJqueryListeners () {
     const jQueryListeners = []
     // eslint-disable-next-line no-undef
+    // eslint-disable-next-line no-undef
     $('*').each((i, v) => {
       const elementListeners = getjQueryEventHandlers(v)
       // console.log(Object.values(elementListeners))
@@ -399,5 +400,3 @@ function JsBugHuntingHelper () {
 
 // eslint-disable-next-line no-var, no-unused-vars
 var jBHH = new JsBugHuntingHelper()
-
-// aggiungere funzione $.post che prenda parametri da console e faccia fuzzing come $.get sopra

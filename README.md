@@ -8,7 +8,7 @@ OR
 copy and paste it in the address bar
 
 ```
-javascript:(function () { var script = document.createElement('script'); script.src="//cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@main/jsBugHuntingHelper.min.js"; document.body.appendChild(script); script.onload = function () { jBHH.init() } })();
+javascript:!function(){function b(){console.log("jQuery loaded");let a=document.createElement("script");a.src="//cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@main/jsBugHuntingHelper.min.js",document.body.appendChild(a),a.onload=function(){jBHH.init()}}if(window.jQuery)b();else{let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){b()}}}();
 ```
 
 Created by Davide Cavallini - Linkedin: https://www.linkedin.com/in/davidecavallini/
