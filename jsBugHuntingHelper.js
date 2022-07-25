@@ -293,23 +293,28 @@ function JsBugHuntingHelper () {
       // console.log("A", object)
 
       for (let o = 0; o < objKeys.length; o++) {
-        if (object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
+        // imposto massimo livello di ricorsione a 5 per evitare overflows
+        if (level < 5 && object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
         // rivedere sta cosa perchè mi elenca solo le funzioni interne
           if (objKeys[o] !== 'fn') {
-            const functionToString = object[objKeys[o]].toString().replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' ')
+            try {
+              const functionToString = object[objKeys[o]].toString().replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' ')
 
-            // console.log("B", functionToString)
+              // console.log("B", functionToString)
 
-            if (alreadyProcessedFunctions.indexOf(functionToString) === -1) {
+              if (alreadyProcessedFunctions.indexOf(functionToString) === -1) {
               // console.log("C", functionToString)
-              searchInside(functionToString, object, objKeys, o, level, result)
-              if (functionToString.indexOf('[object Object]') === -1) {
-                alreadyProcessedFunctions.push(functionToString)
-              }
+                searchInside(functionToString, object, objKeys, o, level, result)
+                if (functionToString.indexOf('[object Object]') === -1) {
+                  alreadyProcessedFunctions.push(functionToString)
+                }
 
-              if (objKeys[o] !== 'set' && objKeys[o] !== 'push') {
-                recursion(object[objKeys[o]], level)
+                if (objKeys[o] !== 'set' && objKeys[o] !== 'push') {
+                  recursion(object[objKeys[o]], level)
+                }
               }
+            } catch (reason) {
+              console.log(reason)
             }
           }
         }

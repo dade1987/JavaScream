@@ -1,6 +1,23 @@
 # jsBugHuntingHelper
 This tool is studied to help ethical hackers to find vulnerable points in webpage's javascript.
 
+EXTENSION METHOD (FIREFOX)
+
+1- clone the project
+```
+git clone https://github.com/dade1987/jsBugHuntingHelper.git
+```
+
+2- open the url "about:debugging"
+
+3- on the left, click "This Browser"
+
+4- click "add temporary extension" and select manifest.json inside the cloned folder
+
+5- click the button on the bottom right of the page to start scanning the webpage
+
+6- look the result in Browser Console (F12)
+
 
 BEST METHOD (BECAUSE CDN MAY HAVE OLD VERSION IN CACHE)
 
@@ -17,6 +34,7 @@ if(!window.jQuery){let a=document.createElement("script");a.src="//cdn.jsdelivr.
 jBHH.init()
 ```
 
+
 ONLY IN CHROME AND EDGE YOU CAN
 
 1- open console
@@ -27,8 +45,8 @@ ONLY IN CHROME AND EDGE YOU CAN
 javascript:(function () { var a = document.createElement('script'); a.src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"; document.body.appendChild(a); a.onload = function () { var b = document.createElement('script'); b.src="https://cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@956b8c42183db630a4c250866d05eca167f59ad4/jsBugHuntingHelper.min.js"; document.body.appendChild(b); b.onload = function () { jBHH.init() } } })();
 ```
 
-IN FIREFOX AND TOR BROWSER
 
+IN FIREFOX AND TOR BROWSER
 
 1- open console
 
