@@ -11,6 +11,7 @@ BEST METHOD (BECAUSE CDN MAY HAVE OLD VERSION IN CACHE)
 if(!window.jQuery){let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){console.log("jQuery Loaded")}}
 ```
 3- copy all the code in https://raw.githubusercontent.com/dade1987/jsBugHuntingHelper/main/jsBugHuntingHelper.min.js in browser console.
+
 4- type this in console
 ```
 jBHH.init()
@@ -22,6 +23,7 @@ ONLY IN CHROME AND EDGE YOU CAN
 
 2- copy and paste this code in the address bar
 
+```
 javascript:(function () { var a = document.createElement('script'); a.src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"; document.body.appendChild(a); a.onload = function () { var b = document.createElement('script'); b.src="https://cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@956b8c42183db630a4c250866d05eca167f59ad4/jsBugHuntingHelper.min.js"; document.body.appendChild(b); b.onload = function () { jBHH.init() } } })();
 ```
 
