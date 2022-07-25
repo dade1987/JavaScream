@@ -443,7 +443,7 @@ function JsBugHuntingHelper () {
         // eslint-disable-next-line no-undef
         try {
           await $.get(newUrl).done(function (data) {
-            if (data.indexOf('TEST_RCE') !== -1) {
+            if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo "TEST_RCE"') === -1 && data.indexOf('echo &quot;TEST_RCE&quot;') === -1) {
               result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
             }
           })
@@ -483,12 +483,17 @@ function JsBugHuntingHelper () {
             const tempParams = []
             // eslint-disable-next-line no-undef
             $(form).find('input,button,select,checkbox').each((i2, v2) => {
-            // eslint-disable-next-line no-undef
-            // console.log($(v2).attr('name'), $(v2).val())
-              tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+              if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
+                // eslint-disable-next-line no-undef
+                // console.log($(v2).attr('name'), $(v2).val())
+                tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+              }
             })
-            tempParams[i].value += payload
-            result.push(await sendFormRequest(form, tempParams, 'XSS', tempParams[i].name))
+            // console.log(tempParams, i, tempParams.length)
+            if (tempParams[i] !== undefined) {
+              tempParams[i].value += payload
+              result.push(await sendFormRequest(form, tempParams, 'XSS', tempParams[i].name))
+            }
           }
         }
       }
@@ -499,12 +504,16 @@ function JsBugHuntingHelper () {
             const tempParams = []
             // eslint-disable-next-line no-undef
             $(form).find('input,button,select,checkbox').each((i2, v2) => {
-            // eslint-disable-next-line no-undef
-            // console.log($(v2).attr('name'), $(v2).val())
-              tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+              if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
+                // eslint-disable-next-line no-undef
+                // console.log($(v2).attr('name'), $(v2).val())
+                tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+              }
             })
-            tempParams[i].value += payload
-            result.push(await sendFormRequest(form, tempParams, 'SQLi', tempParams[i].name))
+            if (tempParams[i] !== undefined) {
+              tempParams[i].value += payload
+              result.push(await sendFormRequest(form, tempParams, 'SQLi', tempParams[i].name))
+            }
           }
         }
       }
@@ -515,12 +524,16 @@ function JsBugHuntingHelper () {
             const tempParams = []
             // eslint-disable-next-line no-undef
             $(form).find('input,button,select,checkbox').each((i2, v2) => {
-            // eslint-disable-next-line no-undef
-            // console.log($(v2).attr('name'), $(v2).val())
-              tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+              if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
+                // eslint-disable-next-line no-undef
+                // console.log($(v2).attr('name'), $(v2).val())
+                tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+              }
             })
-            tempParams[i].value += payload
-            result.push(await sendFormRequest(form, tempParams, 'RCE', tempParams[i].name))
+            if (tempParams[i] !== undefined) {
+              tempParams[i].value += payload
+              result.push(await sendFormRequest(form, tempParams, 'RCE', tempParams[i].name))
+            }
           }
         }
       }
@@ -550,7 +563,7 @@ function JsBugHuntingHelper () {
             }
           } else if (vulnType === 'RCE') {
             if (sqlInjectionScanEnabled === true) {
-              if (data.indexOf('TEST_RCE') !== -1) {
+              if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo "TEST_RCE"') === -1 && data.indexOf('echo &quot;TEST_RCE&quot;') === -1) {
                 result = { paramName: modifiedParam, type: 'RCE via POST Form' }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
@@ -588,7 +601,7 @@ function JsBugHuntingHelper () {
             }
           } else if (vulnType === 'RCE') {
             if (sqlInjectionScanEnabled === true) {
-              if (data.indexOf('TEST_RCE') !== -1) {
+              if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo "TEST_RCE"') === -1 && data.indexOf('echo &quot;TEST_RCE&quot;') === -1) {
                 result = { paramName: modifiedParam, type: 'RCE via GET Form' }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
