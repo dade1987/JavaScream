@@ -42,7 +42,7 @@ ONLY IN CHROME AND EDGE YOU CAN
 2- copy and paste this code in the address bar
 
 ```
-javascript:(function () { var a = document.createElement('script'); a.src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"; document.body.appendChild(a); a.onload = function () { var b = document.createElement('script'); b.src="https://cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@d3699955228f040c0f5fbf11841bf2380ac1bc09/jsBugHuntingHelper.min.js"; document.body.appendChild(b); b.onload = function () { jBHH.init() } } })();
+javascript:(function () { var a = document.createElement('script'); a.src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"; document.body.appendChild(a); a.onload = function () { var b = document.createElement('script'); b.src="https://cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@7d338fc83b1373851c24bed3b44dd18c3a05e9d5/jsBugHuntingHelper.min.js"; document.body.appendChild(b); b.onload = function () { jBHH.init() } } })();
 ```
 
 
@@ -52,7 +52,7 @@ IN FIREFOX AND TOR BROWSER
 
 2- copy this code
 ```
-!function(){function b(){console.log("jQuery loaded");let a=document.createElement("script");a.src="https://cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@d3699955228f040c0f5fbf11841bf2380ac1bc09/jsBugHuntingHelper.min.js",document.body.appendChild(a),a.onload=function(){jBHH.init()}}if(window.jQuery)b();else{let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){b()}}}();
+!function(){function b(){console.log("jQuery loaded");let a=document.createElement("script");a.src="https://cdn.jsdelivr.net/gh/dade1987/jsBugHuntingHelper@7d338fc83b1373851c24bed3b44dd18c3a05e9d5/jsBugHuntingHelper.min.js",document.body.appendChild(a),a.onload=function(){jBHH.init()}}if(window.jQuery)b();else{let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){b()}}}();
 ```
 
 Created by Davide Cavallini - Linkedin: https://www.linkedin.com/in/davidecavallini/
