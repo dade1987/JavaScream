@@ -15,21 +15,138 @@ function JsBugHuntingHelper () {
   const RCEscanEnabled = true
   const formFuzzingEnabled = true
 
-  const payloadsXSS = [
-    '<script>alert("XSS_VULNERABLE_PARAM")</script>',
-    '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="',
-    '<svg/onload=alert("XSS_VULNERABLE_PARAM")>'
-    // questo in realtà sarebbe un bug del PHP SELF, da aggiungere tra la fine dell'url e il ? dei parametri
-    // '/"><script>alert("XSS_VULNERABLE_PARAM")</script><span "'
+  function SearchElement (description, type, string, results) {
+    this.description = description
+    this.type = type
+    this.string = string
+  }
+
+  function PayloadResults (payloadResults) {
+    this.payloadResults = payloadResults
+  }
+
+  function StringResult (string, boolFilter = true) {
+    // boolFilter can be true of false
+    // true if you want to find this word, false if this is a false result
+    this.string = string
+    this.boolFilter = boolFilter
+  }
+  // eslint-disable-next-line no-unused-vars
+  function UrlResult (urlString, timeBeforeCheck = 0, validResponseTimeMajorEqual = 0, payloadResults) {
+    // validResponseTimeMajorEqual is the time after the response is valid
+    // for example in time based sql injection if you set SLEEP(15)
+    // then the result will be valid only after 14.99 seconds
+
+    // payloadResults are the expected results after calling this url
+    // then you can call another url or verify an expected string
+
+    // this is not mandatory for time based injection
+    this.urlString = urlString
+    this.timeBeforeCheck = timeBeforeCheck
+    this.validResponseTimeMajorEqual = validResponseTimeMajorEqual
+    this.payloadResults = payloadResults
+  }
+
+  function PayloadResult (type, expectedOutput) {
+    // type can be currently string or url
+    this.type = type
+    // if type is string typeof expectedOutput must be StringResult
+    // if type is url typeof expectedOutput must be UrlResult
+    switch (this.type) {
+      case 'string':
+        if (expectedOutput.constructor.name === 'StringResult') {
+          this.expectedOutput = expectedOutput
+        } else {
+          throw new Error('expectedOutput is not a StringResult')
+        }
+        break
+      case 'url':
+        if (expectedOutput.constructor.name === 'UrlResult') {
+          this.expectedOutput = expectedOutput
+        } else {
+          throw new Error('expectedOutput is not a UrlResult')
+        }
+        break
+    }
+  }
+
+  function Payload (payloadString, payloadType, payloadResults) {
+    this.payloadString = payloadString
+    this.payloadType = payloadType
+    this.payloadResults = payloadResults
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  const payloadList = [
+    new Payload(
+      '<script>alert("XSS_VULNERABLE_PARAM")</script>',
+      'XSS',
+      new PayloadResults([
+        new PayloadResult('string', new StringResult('alert("XSS_VULNERABLE_PARAM")', true))
+      ])
+    ),
+    new Payload(
+      '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="',
+      'XSS',
+      new PayloadResults([
+        new PayloadResult('string', new StringResult('alert("XSS_VULNERABLE_PARAM")', true))
+      ])
+    ),
+    new Payload(
+      '"',
+      'SQLInjection',
+      new PayloadResults([new PayloadResult('string', new StringResult('mysqli', true))])
+    ),
+    new Payload(
+      "'",
+      'SQLInjection',
+      new PayloadResults([new PayloadResult('string', new StringResult('mysqli', true))])
+    ),
+    new Payload(
+      'test" || echo "TEST_RCE" > /var/www/html/testRCE.php#',
+      'RCE',
+      new PayloadResults([
+        new PayloadResult('string', new UrlResult(document.location + 'testRCE.php', 0, 0, new StringResult('TEST_RCE', true)))
+      ])
+    ),
+    new Payload(
+      'test" || echo "TEST_RCE" > /var/www/html/testRCE.php#',
+      'RCE',
+      new PayloadResults([
+        new PayloadResult('string', new UrlResult(document.location + 'testRCE.php', 0, 0, new StringResult('TEST_RCE', true)))
+      ])
+    ),
+    new Payload(
+      'echo "TEST_RCE" > /var/www/html/testRCE.php#',
+      'RCE',
+      new PayloadResults([
+        new PayloadResult('string', new UrlResult(document.location + 'testRCE.php', 0, 0, new StringResult('TEST_RCE', true)))
+      ])
+    ),
+    new Payload(
+      'test" || echo "TEST_RCE" > /var/www/testRCE.php#',
+      'RCE',
+      new PayloadResults([
+        new PayloadResult('string', new UrlResult(document.location + 'testRCE.php', 0, 0, new StringResult('TEST_RCE', true)))
+      ])
+    ),
+    new Payload(
+      '" || echo "TEST_RCE"#',
+      'RCE',
+      new PayloadResults([
+        new PayloadResult('string', new UrlResult(document.location + 'testRCE.php', 0, 0, new StringResult('TEST_RCE', true)))
+      ])
+    ),
+    new Payload(
+      '" && echo "TEST_RCE"#',
+      'RCE',
+      new PayloadResults([
+        new PayloadResult('string', new UrlResult(document.location + 'testRCE.php', 0, 0, new StringResult('TEST_RCE', true)))
+      ])
+    )
   ]
-  const payloadsSQLi = ['"', "'"]
-  const payloadsRCE = [
-    'test" || echo TEST_RCE > /var/www/html/testRCE.php || "',
-    'test" || echo TEST_RCE > /var/www/testRCE.php || "',
-    '"+%26%26+echo+TEST_RCE+%26%26+"',
-    '" && echo TEST_RCE && "',
-    'echo TEST_RCE'
-  ]
+
+  console.log(payloadList[6])
 
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
@@ -60,11 +177,6 @@ function JsBugHuntingHelper () {
       console.log('URL XSS Vulnerabilities')
       const xss = await testXSS()
       console.log(xss)
-      console.log('Try to test the possible XSS of PHP_SELF in the form')
-      console.log('If i have http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level5.php?username=&submit=Submit')
-      console.log('i can run this payload: http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level5.php/"><script>alert(1)</script><span class="bho?username=&submit=Submit')
-      console.log('and my form from this: <form method="GET" action="<?php echo $_SERVER[\'PHP_SELF\']; ?>" name="form">')
-      console.log('become this: <form method="GET" action="http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level5.php/"><script>alert(1)</script><span class="bho" name="form">')
     }
     if (sqlInjectionScanEnabled === true) {
       console.log('URL SQL Injection Vulnerabilities')
@@ -87,15 +199,9 @@ function JsBugHuntingHelper () {
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
   }
 
-  function SearchElement (description, type, string) {
-    this.description = description
-    this.type = type
-    this.string = string
-  }
-
   const searchElements = [
-    // new SearchElement('single line comment', 'string', ' //'),
-    // new SearchElement('block comment', 'string', '/*'),
+  // new SearchElement('single line comment', 'string', ' //'),
+  // new SearchElement('block comment', 'string', '/*'),
     new SearchElement('form', 'string', '<form'),
     new SearchElement('url', 'string', 'http://'),
     new SearchElement('url', 'string', 'https://'),
@@ -128,7 +234,7 @@ function JsBugHuntingHelper () {
   ]
 
   function getAllUrlParams (url) {
-    // get query string from url (optional) or window
+  // get query string from url (optional) or window
     let queryString = url ? url.split('?')[1] : window.location.search.slice(1)
 
     // we'll store the parameters here
@@ -136,14 +242,14 @@ function JsBugHuntingHelper () {
 
     // if query string exists
     if (queryString) {
-      // stuff after # is not part of query string, so get rid of it
+    // stuff after # is not part of query string, so get rid of it
       queryString = queryString.split('#')[0]
 
       // split our query string into its component parts
       const arr = queryString.split('&')
 
       for (let i = 0; i < arr.length; i++) {
-        // separate the keys and the values
+      // separate the keys and the values
         const a = arr[i].split('=')
 
         // set parameter name and value (use 'true' if empty)
@@ -152,34 +258,34 @@ function JsBugHuntingHelper () {
 
         // (optional) keep case consistent
         /* paramName = paramName.toLowerCase()
-          if (typeof paramValue === 'string') paramValue = paramValue.toLowerCase() */
+        if (typeof paramValue === 'string') paramValue = paramValue.toLowerCase() */
 
         // if the paramName ends with square brackets, e.g. colors[] or colors[2]
         if (paramName.match(/\[(\d+)?\]$/)) {
-          // create key if it doesn't exist
+        // create key if it doesn't exist
           const key = paramName.replace(/\[(\d+)?\]/, '')
           if (!obj[key]) obj[key] = []
 
           // if it's an indexed array e.g. colors[2]
           if (paramName.match(/\[\d+\]$/)) {
-            // get the index value and add the entry at the appropriate position
+          // get the index value and add the entry at the appropriate position
             const index = /\[(\d+)\]/.exec(paramName)[1]
             obj[key][index] = paramValue
           } else {
-            // otherwise add the value to the end of the array
+          // otherwise add the value to the end of the array
             obj[key].push(paramValue)
           }
         } else {
-          // we're dealing with a string
+        // we're dealing with a string
           if (!obj[paramName]) {
-            // if it doesn't exist, create property
+          // if it doesn't exist, create property
             obj[paramName] = paramValue
           } else if (obj[paramName] && typeof obj[paramName] === 'string') {
-            // if property does exist and it's a string, convert it to an array
+          // if property does exist and it's a string, convert it to an array
             obj[paramName] = [obj[paramName]]
             obj[paramName].push(paramValue)
           } else {
-            // otherwise add the property
+          // otherwise add the property
             obj[paramName].push(paramValue)
           }
         }
@@ -203,17 +309,17 @@ function JsBugHuntingHelper () {
     const events = event ? [event] : Object.keys(listeners)
     if (!eventns) return listeners // Object with all event types
     events.forEach((type) => {
-      // gets event-handlers by event-type or namespace
+    // gets event-handlers by event-type or namespace
       (listeners[type] || []).forEach(getHandlers, type)
     })
     // eslint-disable-next-line
-      function getHandlers(e) {
+    function getHandlers(e) {
       const type = this.toString()
       const eNamespace = e.namespace || (e.data && e.data.handler)
       // gets event-handlers by event-type or namespace
       if ((event === type && !namespace) ||
-              (eNamespace === namespace && !event) ||
-              (eNamespace === namespace && event === type)) {
+            (eNamespace === namespace && !event) ||
+            (eNamespace === namespace && event === type)) {
         handlers[type] = handlers[type] || []
         handlers[type].push(e)
       }
@@ -311,8 +417,8 @@ function JsBugHuntingHelper () {
 
       for (let o = 0; o < objKeys.length; o++) {
         // imposto massimo livello di ricorsione a 5 per evitare overflows
-        if (level < 5 && object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== '$' && objKeys[o] !== 'jQuery' && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
-          // rivedere sta cosa perchè mi elenca solo le funzioni interne
+        if (level < 5 && object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
+        // rivedere sta cosa perchè mi elenca solo le funzioni interne
           if (objKeys[o] !== 'fn') {
             try {
               const functionToString = object[objKeys[o]].toString().replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' ')
@@ -320,7 +426,7 @@ function JsBugHuntingHelper () {
               // console.log("B", functionToString)
 
               if (alreadyProcessedFunctions.indexOf(functionToString) === -1) {
-                // console.log("C", functionToString)
+              // console.log("C", functionToString)
                 searchInside(functionToString, object, objKeys, o, level, result)
                 if (functionToString.indexOf('[object Object]') === -1) {
                   alreadyProcessedFunctions.push(functionToString)
@@ -449,12 +555,11 @@ function JsBugHuntingHelper () {
         })
 
         const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
-        // console.log(newUrl)
 
         // eslint-disable-next-line no-undef
         try {
           await $.get(newUrl).done(function (data) {
-            if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
+            if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo "TEST_RCE"') === -1 && data.indexOf('echo &quot;TEST_RCE&quot;') === -1) {
               result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
             }
           })
@@ -556,39 +661,26 @@ function JsBugHuntingHelper () {
   async function sendFormRequest (form, params, vulnType, modifiedParam) {
     let result = {}
     // eslint-disable-next-line no-undef
-    let url = $('form').attr('action')
-    if (url === '') {
-      url = window.location.href
-    } else if (url.substr(0, 4) !== 'http') {
-      let b = window.location.href.split('/').slice(0, -1).join('/')
-      if (url[0] !== '/') {
-        b += '/'
-      }
-      url = b + url
-    }
+    const url = $(form).attr('action')
     // eslint-disable-next-line no-undef
     if ($(form).attr('method') === 'POST' || $(form).attr('method') === 'post' || $(form).attr('method') === '$_POST' || $(form).attr('method') === '$_post') {
       // eslint-disable-next-line no-undef
       try {
         await $.post(url, params).done(function (data) {
           if (vulnType === 'XSS') {
-            if (xssScanEnabled === true) {
-              if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
-                result = { paramName: modifiedParam, type: 'XSS via POST Form', params }
+            if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
+              result = { paramName: modifiedParam, type: 'XSS via POST Form' }
               // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
-              }
             }
           } else if (vulnType === 'SQLi') {
-            if (sqlInjectionScanEnabled === true) {
-              if (data.indexOf('Uncaught mysql') !== -1) {
-                result = { paramName: modifiedParam, type: 'SQL Injection via POST Form', params }
+            if (data.indexOf('Uncaught mysql') !== -1) {
+              result = { paramName: modifiedParam, type: 'SQL Injection via POST Form' }
               // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad SQL Injection')
-              }
             }
           } else if (vulnType === 'RCE') {
-            if (RCEscanEnabled === true) {
-              if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
-                result = { paramName: modifiedParam, type: 'RCE via POST Form', params }
+            if (sqlInjectionScanEnabled === true) {
+              if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo "TEST_RCE"') === -1 && data.indexOf('echo &quot;TEST_RCE&quot;') === -1) {
+                result = { paramName: modifiedParam, type: 'RCE via POST Form' }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
             }
@@ -596,41 +688,37 @@ function JsBugHuntingHelper () {
         })
         if (vulnType === 'RCE') {
           // qui è giusto che sia get, in quanto è un altra richiesta
-          if (RCEscanEnabled === true) {
-            try {
-              $.get(document.location.origin + '/testRCE.php').done(function (data) {
-                if (data.indexOf('TEST_RCE') !== -1) {
-                  result = { paramName: modifiedParam, type: 'RCE via POST Form', params }
+          try {
+            $.get(document.location.origin + '/testRCE.php').done(function (data) {
+              if (data.indexOf('TEST_RCE') !== -1) {
+                result = { paramName: modifiedParam, type: 'RCE via POST Form' }
                 // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
-                }
-              })
-            } catch (reason) { console.log(reason) }
-          }
+              }
+            })
+          } catch (reason) { console.log(reason) }
         }
       } catch (reason) { console.log(reason) }
     } else if ($(form).attr('method') === 'GET' || $(form).attr('method') === 'get' || $(form).attr('method') === '$_GET' || $(form).attr('method') === '$_get') {
       try {
-        // console.log('url', url)
         await $.get(url, params).done(function (data) {
           if (vulnType === 'XSS') {
             if (xssScanEnabled === true) {
               if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
-                result = { paramName: modifiedParam, type: 'XSS via GET Form', params }
-                // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
+                result = { paramName: modifiedParam, type: 'XSS via GET Form' }
+              // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
               }
             }
           } else if (vulnType === 'SQLi') {
             if (sqlInjectionScanEnabled === true) {
               if (data.indexOf('Uncaught mysql') !== -1) {
-                result = { paramName: modifiedParam, type: 'SQL Injection via GET Form', params }
+                result = { paramName: modifiedParam, type: 'SQL Injection via GET Form' }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
             }
           } else if (vulnType === 'RCE') {
-            if (RCEscanEnabled === true) {
-              if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
-                // console.log(data)
-                result = { paramName: modifiedParam, type: 'RCE via GET Form', params }
+            if (sqlInjectionScanEnabled === true) {
+              if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo "TEST_RCE"') === -1 && data.indexOf('echo &quot;TEST_RCE&quot;') === -1) {
+                result = { paramName: modifiedParam, type: 'RCE via GET Form' }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
             }
@@ -641,7 +729,7 @@ function JsBugHuntingHelper () {
             try {
               await $.get(document.location.origin + '/testRCE.php').done(function (data) {
                 if (data.indexOf('TEST_RCE') !== -1) {
-                  result = { paramName: modifiedParam, type: 'RCE via GET Form', params }
+                  result = { paramName: modifiedParam, type: 'RCE via GET Form' }
                 // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
                 }
               })

@@ -12,7 +12,7 @@
 
     "content_scripts": [{
         "matches": ["<all_urls>"],
-        "js": ["jquery.min.js", "jsBugHuntingHelper.min.js", "startExtension.js"]
+        "js": ["jquery.min.js", "jsBugHuntingHelperDEV.js", "startExtension.js"]
     }]
 
 }
