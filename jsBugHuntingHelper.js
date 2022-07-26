@@ -10,10 +10,10 @@
 function JsBugHuntingHelper () {
   'use strict'
 
-  const xssScanEnabled = true
-  const sqlInjectionScanEnabled = true
-  const RCEscanEnabled = true
-  const formFuzzingEnabled = true
+  this.xssScanEnabled = false
+  this.sqlInjectionScanEnabled = false
+  this.rceScanEnabled = false
+  this.formFuzzingEnabled = false
 
   const payloadsXSS = [
     '<script>alert("XSS_VULNERABLE_PARAM")</script>',
@@ -34,7 +34,12 @@ function JsBugHuntingHelper () {
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
   // @return void
-  this.init = async function () {
+  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled) {
+    this.xssScanEnabled = xssScanEnabled
+    this.sqlInjectionScanEnabled = sqlInjectionScanEnabled
+    this.rceScanEnabled = rceScanEnabled
+    this.formFuzzingEnabled = formFuzzingEnabled
+
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
     console.log('----------------------------------------------------------')
@@ -56,7 +61,7 @@ function JsBugHuntingHelper () {
     const headers = await getPageHeaders(document.location.href)
     console.log('Headers', headers)
 
-    if (xssScanEnabled === true) {
+    if (this.xssScanEnabled === true) {
       console.log('URL XSS Vulnerabilities')
       const xss = await testXSS()
       console.log(xss)
@@ -66,19 +71,19 @@ function JsBugHuntingHelper () {
       console.log('and my form from this: <form method="GET" action="<?php echo $_SERVER[\'PHP_SELF\']; ?>" name="form">')
       console.log('become this: <form method="GET" action="http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level5.php/"><script>alert(1)</script><span class="bho" name="form">')
     }
-    if (sqlInjectionScanEnabled === true) {
+    if (this.sqlInjectionScanEnabled === true) {
       console.log('URL SQL Injection Vulnerabilities')
       const sql = await testSqlInjection()
       console.log(sql)
     }
-    if (RCEscanEnabled === true) {
+    if (this.rceScanEnabled === true) {
       console.log('URL RCE Vulnerabilities')
       const rce = await testRCE()
       console.log(rce)
     }
-    if (formFuzzingEnabled === true) {
+    if (this.formFuzzingEnabled === true) {
       console.log('Form Vulnerabilities')
-      const form = await formFuzzer()
+      const form = await formFuzzer.call(this)
       console.log(form)
     }
     console.log('\n')
@@ -488,7 +493,7 @@ function JsBugHuntingHelper () {
     for (const form of Q('form')) {
       const originalParamsLength = $(form).find('input,button,select,checkbox').length
 
-      if (xssScanEnabled === true) {
+      if (this.xssScanEnabled === true) {
         for (let i = 0; i < originalParamsLength; i++) {
           for (const payload of payloadsXSS) {
             const tempParams = []
@@ -503,13 +508,13 @@ function JsBugHuntingHelper () {
             // console.log(tempParams, i, tempParams.length)
             if (tempParams[i] !== undefined) {
               tempParams[i].value += payload
-              result.push(await sendFormRequest(form, tempParams, 'XSS', tempParams[i].name))
+              result.push(await sendFormRequest.call(this, form, tempParams, 'XSS', tempParams[i].name))
             }
           }
         }
       }
 
-      if (sqlInjectionScanEnabled === true) {
+      if (this.sqlInjectionScanEnabled === true) {
         for (let i = 0; i < originalParamsLength; i++) {
           for (const payload of payloadsSQLi) {
             const tempParams = []
@@ -523,13 +528,13 @@ function JsBugHuntingHelper () {
             })
             if (tempParams[i] !== undefined) {
               tempParams[i].value += payload
-              result.push(await sendFormRequest(form, tempParams, 'SQLi', tempParams[i].name))
+              result.push(await sendFormRequest.call(this, form, tempParams, 'SQLi', tempParams[i].name))
             }
           }
         }
       }
 
-      if (RCEscanEnabled === true) {
+      if (this.rceScanEnabled === true) {
         for (let i = 0; i < originalParamsLength; i++) {
           for (const payload of payloadsRCE) {
             const tempParams = []
@@ -543,7 +548,7 @@ function JsBugHuntingHelper () {
             })
             if (tempParams[i] !== undefined) {
               tempParams[i].value += payload
-              result.push(await sendFormRequest(form, tempParams, 'RCE', tempParams[i].name))
+              result.push(await sendFormRequest.call(this, form, tempParams, 'RCE', tempParams[i].name))
             }
           }
         }
@@ -555,6 +560,7 @@ function JsBugHuntingHelper () {
 
   async function sendFormRequest (form, params, vulnType, modifiedParam) {
     let result = {}
+    const context = this
     // eslint-disable-next-line no-undef
     let url = $('form').attr('action')
     if (url === '') {
@@ -572,21 +578,21 @@ function JsBugHuntingHelper () {
       try {
         await $.post(url, params).done(function (data) {
           if (vulnType === 'XSS') {
-            if (xssScanEnabled === true) {
+            if (context.xssScanEnabled === true) {
               if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
                 result = { paramName: modifiedParam, type: 'XSS via POST Form', params }
               // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
               }
             }
           } else if (vulnType === 'SQLi') {
-            if (sqlInjectionScanEnabled === true) {
+            if (context.sqlInjectionScanEnabled === true) {
               if (data.indexOf('Uncaught mysql') !== -1) {
                 result = { paramName: modifiedParam, type: 'SQL Injection via POST Form', params }
               // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
             }
           } else if (vulnType === 'RCE') {
-            if (RCEscanEnabled === true) {
+            if (context.rceScanEnabled === true) {
               if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
                 result = { paramName: modifiedParam, type: 'RCE via POST Form', params }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
@@ -596,12 +602,12 @@ function JsBugHuntingHelper () {
         })
         if (vulnType === 'RCE') {
           // qui è giusto che sia get, in quanto è un altra richiesta
-          if (RCEscanEnabled === true) {
+          if (context.rceScanEnabled === true) {
             try {
               $.get(document.location.origin + '/testRCE.php').done(function (data) {
                 if (data.indexOf('TEST_RCE') !== -1) {
                   result = { paramName: modifiedParam, type: 'RCE via POST Form', params }
-                // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
+                  // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
                 }
               })
             } catch (reason) { console.log(reason) }
@@ -613,21 +619,21 @@ function JsBugHuntingHelper () {
         // console.log('url', url)
         await $.get(url, params).done(function (data) {
           if (vulnType === 'XSS') {
-            if (xssScanEnabled === true) {
+            if (context.xssScanEnabled === true) {
               if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
                 result = { paramName: modifiedParam, type: 'XSS via GET Form', params }
                 // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad attacchi XSS')
               }
             }
           } else if (vulnType === 'SQLi') {
-            if (sqlInjectionScanEnabled === true) {
+            if (context.sqlInjectionScanEnabled === true) {
               if (data.indexOf('Uncaught mysql') !== -1) {
                 result = { paramName: modifiedParam, type: 'SQL Injection via GET Form', params }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
             }
           } else if (vulnType === 'RCE') {
-            if (RCEscanEnabled === true) {
+            if (context.rceScanEnabled === true) {
               if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
                 // console.log(data)
                 result = { paramName: modifiedParam, type: 'RCE via GET Form', params }
@@ -637,7 +643,7 @@ function JsBugHuntingHelper () {
           }
         })
         if (vulnType === 'RCE') {
-          if (RCEscanEnabled === true) {
+          if (context.rceScanEnabled === true) {
             try {
               await $.get(document.location.origin + '/testRCE.php').done(function (data) {
                 if (data.indexOf('TEST_RCE') !== -1) {
