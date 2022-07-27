@@ -48,7 +48,7 @@ function JsBugHuntingHelper () {
     console.log('\n')
 
     console.log('Body Source Suspicious Points'.toUpperCase())
-    console.log(searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0))
+    console.table(searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0))
     console.log('----------------------------------------------------------------------------')
     console.log('\n')
 
@@ -180,23 +180,38 @@ function JsBugHuntingHelper () {
     new SearchElement('REGEX url with params', 'regEx', /\?(\w+=\w+)/),
     new SearchElement('REGEX email address', 'regEx', /\S+@\S+\.\S+/),
 
-    new SearchElement('Google API Key', 'regEx', /[1-9][ 0-9]+-[0-9a-zA-Z]{40}/),
-    new SearchElement('Google API Key', 'regEx', /(^|[^@\w])@(\w{1,15})\b/),
-    new SearchElement('Google API Key', 'regEx', /EAACEdEose0cBA[0-9A-Za-z]+/),
-    new SearchElement('Google API Key', 'regEx', /[A-Za-z0-9]{125}/),
-    new SearchElement('Google API Key', 'regEx', /[0-9a-fA-F]{7}.[0-9a-fA-F]{32}/),
-    new SearchElement('Google API Key', 'regEx', /(?:@)([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:.(?!.))){0,28}(?:[A-Za-z0-9_]))?)/),
-    new SearchElement('Google API Key', 'regEx', /(?:#)([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:.(?!.))){0,28}(?:[A-Za-z0-9_]))?)/),
+    // api keys regexes
+    new SearchElement('Twitter Access Token', 'regEx', /[1-9][ 0-9]+-[0-9a-zA-Z]{40}/),
+    new SearchElement('Twitter Username', 'regEx', /(^|[^@\w])@(\w{1,15})\b/),
+    new SearchElement('FB Access Token', 'regEx', /EAACEdEose0cBA[0-9A-Za-z]+/),
+    new SearchElement('FB OAuth 2.0', 'regEx', /[A-Za-z0-9]{125}/),
     new SearchElement('Google API Key', 'regEx', /AIza[0-9A-Za-z-_]{35}/),
-    new SearchElement('Google API Key', 'regEx', /[0-9a-zA-Z-_]{24}/),
-    new SearchElement('Google API Key', 'regEx', /4\/[0-9A-Za-z-_]+/),
-    new SearchElement('Google API Key', 'regEx', /1\/[0-9A-Za-z-]{43}|1\/[0-9A-Za-z-]{64}/),
-    new SearchElement('Google API Key', 'regEx', /[0-9a-zA-Z-_]{24}/),
-    new SearchElement('Google API Key', 'regEx', /[0-9a-zA-Z-_]{24}/),
+    new SearchElement('Google OAuth 2.0 Auth Code', 'regEx', /4\/[0-9A-Za-z-_]+/),
+    new SearchElement('Google OAuth 2.0 Refresh Token', 'regEx', /1\/[0-9A-Za-z-]{43}|1\/[0-9A-Za-z-]{64}/),
+    new SearchElement('Google OAuth 2.0 Access Token', 'regEx', /ya29.[0-9A-Za-z-_]+/),
+    new SearchElement('Github OAuth 2.0 ID', 'regEx', /[A-Za-z0-9_]{255}/),
+    new SearchElement('Picatic API Key', 'regEx', /sk_live_[0-9a-z]{32}/),
+    new SearchElement('Stripe API Key', 'regEx', /sk_live_[0-9a-zA-Z]{24}/),
+    new SearchElement('Square Access Token', 'regEx', /sqOatp-[0-9A-Za-z-_]{22}/),
+    new SearchElement('Square OAuth Secret', 'regEx', /q0csp-[ 0-9A-Za-z-_]{43}/),
+    new SearchElement('Paypal/Braintree Access Token', 'regEx', /\$[0-9a-z]{161[0-9a,]{32}/),
+    new SearchElement('AWS Auth Token', 'regEx', /amzn.mws.[0-9a-f]{8}-[0-9a-f]{4}-10-9a-f1{4}-[0-9a,]{4}-[0-9a-f]{12}/),
+    new SearchElement('Twilio API Key', 'regEx', /55[0-9a-fA-F]{32}/),
+    new SearchElement('MailGun API Key', 'regEx', /key-[0-9a-zA-Z]{32}/),
+    new SearchElement('MailChimp API Key', 'regEx', /[0-9a-f]{32}-us[0-9]{1,2}/),
+    new SearchElement('Slack OAuth 2.0', 'regEx', /xoxb-[0-9]{11}-[0-9]{11}-[0-9a-zA-Z]{24}/),
+    new SearchElement('Slack OAuth v2 Configuration Token', 'regEx', /xoxe.xoxp-1-[0-9a-zA-Z]{166}/),
+    new SearchElement('Slack OAuth v2 Refresh Token', 'regEx', /xoxe-1-[0-9a-zA-Z]{147}/),
+    new SearchElement('Slack Webhook', 'regEx', /T[a-zA-Z0-9_]{8}\/B[a-zA-Z0-9_]{8}\/[a-zA-Z0-9_]{24}/),
+    new SearchElement('AWS Access Key ID', 'regEx', /AKIA[0-9A-Z]{16}/),
+    new SearchElement('Google Cloud OAuth 2.0', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
+    new SearchElement('Google Clous API Key', 'regEx', /[A-Za-z0-9_]{21}--[A-Za-z0-9_]{8}/),
+    new SearchElement('Heroku API Key', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
+    new SearchElement('Heroku OAuth 2.0', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
 
     new SearchElement('Js One Line Comment', 'string', '//'),
-    new SearchElement('Js Multi Line Comment', 'string', '/*'),
-    new SearchElement('HTML Multi Line Comment', 'string', '<!--')
+    new SearchElement('Js Multi Line Comment', 'string', '/*')
+    /* new SearchElement('HTML Multi Line Comment', 'string', '<!--') */
   ]
 
   function getAllUrlParams (url) {
