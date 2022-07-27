@@ -14,8 +14,6 @@ function JsBugHuntingHelper () {
   this.sqlInjectionScanEnabled = false
   this.rceScanEnabled = false
   this.formFuzzingEnabled = false
-  // extensions have a special object called wrappedJSObject to get the original properties of the browser
-  this.originalWinObj = {}
 
   const payloadsXSS = [
     '<script>alert("XSS_VULNERABLE_PARAM")</script>',
@@ -47,64 +45,24 @@ function JsBugHuntingHelper () {
     console.log('----------------------------------------------------------')
     console.log('\n')
 
-    console.log('Body Source Suspicious Points'.toUpperCase())
-    console.log(searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0))
-    console.log('----------------------------------------------------------------------------')
-    console.log('\n')
+    console.log('Window Memory Suspicious Points')
+    console.log(recursiveEnumerate(window, 0))
+    console.log('JS Listeners Suspicious Points')
+    console.log(recursiveEnumerate(listAllEventListeners(), 0))
+    console.log('JQuery Listeners Suspicious Points')
+    console.log(searchJqueryListeners())
+    console.log('JQuery Document Listeners Suspicious Points')
+    console.log(recursiveEnumerate(getjQueryEventHandlers(document), 0))
+    console.log('Body Source Suspicious Points')
+    console.log(searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0, 0))
 
-    console.log('Window Memory Suspicious Points'.toUpperCase())
-
-    // console.log(window.wrappedJSObject)
-
-    window.wrappedJSObject !== undefined ? this.originalWinObj = window.wrappedJSObject : originalWinObj = window
-
-    recursiveEnumerate(this.originalWinObj, 0).forEach((v) => {
-      console.log(v.description, v.function, v.declaration)
-    })
-
-    console.log('----------------------------------------------------------------------------')
-    console.log('\n')
-
-    /* const table = interfaceTable
-    recursiveEnumerate(window, 0).forEach((v) => {
-      table.innerHTML += '<tr><td><a href="javascript:console.log(' + v.name + ')">' + v.name + '</a></td></tr>'
-    }) */
-
-    console.log('JS Listeners Suspicious Points'.toUpperCase())
-    recursiveEnumerate(listAllEventListeners.call(this), 0).forEach((v) => {
-      console.log(v.description, v.function, v.declaration)
-    })
-
-    console.log('----------------------------------------------------------------------------')
-    console.log('\n')
-
-    if (window.wrappedJSObject.jQuery !== undefined) {
-      console.log('JQuery Listeners Suspicious Points'.toUpperCase())
-      searchJqueryListeners.call(this).forEach((v) => {
-        console.log(v.description, v.function, v.declaration)
-      })
-      console.log('----------------------------------------------------------------------------')
-      console.log('\n')
-
-      console.log('JQuery Document Listeners Suspicious Points'.toUpperCase())
-      recursiveEnumerate(getjQueryEventHandlers.call(this, document), 0).forEach((v) => {
-        console.log(v.description, v.function, v.declaration)
-      })
-      console.log('----------------------------------------------------------------------------')
-      console.log('\n')
-    }
-
-    console.log('Cookie'.toUpperCase(), document.cookie)
-    console.log('----------------------------------------------------------------------------')
-    console.log('\n')
+    console.log('Cookie', document.cookie)
 
     const headers = await getPageHeaders(document.location.href)
-    console.log('Headers'.toUpperCase(), headers)
-    console.log('----------------------------------------------------------------------------')
-    console.log('\n')
+    console.log('Headers', headers)
 
     if (this.xssScanEnabled === true) {
-      console.log('URL XSS Vulnerabilities'.toUpperCase())
+      console.log('URL XSS Vulnerabilities')
       const xss = await testXSS()
       console.log(xss)
       console.log('Try to test the possible XSS of PHP_SELF in the form')
@@ -112,29 +70,21 @@ function JsBugHuntingHelper () {
       console.log('i can run this payload: http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level5.php/"><script>alert(1)</script><span class="bho?username=&submit=Submit')
       console.log('and my form from this: <form method="GET" action="<?php echo $_SERVER[\'PHP_SELF\']; ?>" name="form">')
       console.log('become this: <form method="GET" action="http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level5.php/"><script>alert(1)</script><span class="bho" name="form">')
-      console.log('----------------------------------------------------------------------------')
-      console.log('\n')
     }
     if (this.sqlInjectionScanEnabled === true) {
-      console.log('URL SQL Injection Vulnerabilities'.toUpperCase())
+      console.log('URL SQL Injection Vulnerabilities')
       const sql = await testSqlInjection()
       console.log(sql)
-      console.log('----------------------------------------------------------------------------')
-      console.log('\n')
     }
     if (this.rceScanEnabled === true) {
-      console.log('URL RCE Vulnerabilities'.toUpperCase())
+      console.log('URL RCE Vulnerabilities')
       const rce = await testRCE()
       console.log(rce)
-      console.log('----------------------------------------------------------------------------')
-      console.log('\n')
     }
     if (this.formFuzzingEnabled === true) {
-      console.log('Form Vulnerabilities'.toUpperCase())
+      console.log('Form Vulnerabilities')
       const form = await formFuzzer.call(this)
       console.log(form)
-      console.log('----------------------------------------------------------------------------')
-      console.log('\n')
     }
     console.log('\n')
     console.log('----------------------------------------------------------')
@@ -179,24 +129,7 @@ function JsBugHuntingHelper () {
     new SearchElement('something on password', 'string', '"pwd"'),
     new SearchElement('REGEX url with params', 'regEx', /\?(\w+=\w+)/),
     new SearchElement('REGEX email address', 'regEx', /\S+@\S+\.\S+/),
-
-    new SearchElement('Google API Key', 'regEx', /[1-9][ 0-9]+-[0-9a-zA-Z]{40}/),
-    new SearchElement('Google API Key', 'regEx', /(^|[^@\w])@(\w{1,15})\b/),
-    new SearchElement('Google API Key', 'regEx', /EAACEdEose0cBA[0-9A-Za-z]+/),
-    new SearchElement('Google API Key', 'regEx', /[A-Za-z0-9]{125}/),
-    new SearchElement('Google API Key', 'regEx', /[0-9a-fA-F]{7}.[0-9a-fA-F]{32}/),
-    new SearchElement('Google API Key', 'regEx', /(?:@)([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:.(?!.))){0,28}(?:[A-Za-z0-9_]))?)/),
-    new SearchElement('Google API Key', 'regEx', /(?:#)([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:.(?!.))){0,28}(?:[A-Za-z0-9_]))?)/),
-    new SearchElement('Google API Key', 'regEx', /AIza[0-9A-Za-z-_]{35}/),
-    new SearchElement('Google API Key', 'regEx', /[0-9a-zA-Z-_]{24}/),
-    new SearchElement('Google API Key', 'regEx', /4\/[0-9A-Za-z-_]+/),
-    new SearchElement('Google API Key', 'regEx', /1\/[0-9A-Za-z-]{43}|1\/[0-9A-Za-z-]{64}/),
-    new SearchElement('Google API Key', 'regEx', /[0-9a-zA-Z-_]{24}/),
-    new SearchElement('Google API Key', 'regEx', /[0-9a-zA-Z-_]{24}/),
-
-    new SearchElement('Js One Line Comment', 'string', '//'),
-    new SearchElement('Js Multi Line Comment', 'string', '/*'),
-    new SearchElement('HTML Multi Line Comment', 'string', '<!--')
+    new SearchElement('REGEX API Key', 'regEx', /^[a-f0-9]{32}$/)
   ]
 
   function getAllUrlParams (url) {
@@ -262,7 +195,7 @@ function JsBugHuntingHelper () {
   }
 
   function getjQueryEventHandlers (element, eventns) {
-    const $ = this.originalWinObj.jQuery
+    const $ = window.jQuery
     const i = (eventns || '').indexOf('.')
     const event = i > -1 ? eventns.substr(0, i) : eventns
     // eslint-disable-next-line no-void
@@ -296,11 +229,11 @@ function JsBugHuntingHelper () {
   function listAllEventListeners () {
     const allElements = Array.prototype.slice.call(document.querySelectorAll('*'))
     allElements.push(document)
-    allElements.push(this.originalWinObj)
+    allElements.push(window)
 
     const types = []
 
-    for (const ev in this.originalWinObj) {
+    for (const ev in window) {
       if (/^on/.test(ev)) types[types.length] = ev
     }
 
@@ -338,7 +271,7 @@ function JsBugHuntingHelper () {
     return indexes
   }
 
-  function searchInside (functionToString, object, objKeys, o, resultTmp) {
+  function searchInside (functionToString, object, objKeys, o, level, resultTmp) {
     let result = []
     if (resultTmp !== undefined) {
       result = resultTmp
@@ -355,7 +288,7 @@ function JsBugHuntingHelper () {
       if (v.type === 'string') {
         const index = getAllIndexes(functionToString, v.string)
         index.forEach((ind) => {
-          result.push({ description: v.description, name: objKeys[o], function: object[objKeys[o]], declaration: functionToString.substr(ind - 15, 60) })
+          result.push({ type: 'string', description: v.description, level, name: objKeys[o], function: object[objKeys[o]], declaration: functionToString.substr(ind - 15, 60) })
           // console.log(result)
         })
       } else if (v.type === 'regEx') {
@@ -364,7 +297,7 @@ function JsBugHuntingHelper () {
         // console.log('regEx Index', index)
         index.forEach((ind) => {
           if (objKeys[o] !== 'string') {
-            result.push({ description: v.description, name: objKeys[o], function: object[objKeys[o]], declaration: functionToString.substr(ind - 15, 60) })
+            result.push({ type: 'regEx', description: v.description, level, name: objKeys[o], function: object[objKeys[o]], declaration: functionToString.substr(ind - 15, 60) })
             // console.log(result)
           }
         })
@@ -383,7 +316,7 @@ function JsBugHuntingHelper () {
 
       for (let o = 0; o < objKeys.length; o++) {
         // imposto massimo livello di ricorsione a 5 per evitare overflows
-        if (level < 5 && object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== '$' && objKeys[o] !== 'location' && objKeys[o] !== 'jQuery' && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
+        if (level < 5 && object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== '$' && objKeys[o] !== 'jQuery' && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
           // rivedere sta cosa perchè mi elenca solo le funzioni interne
           if (objKeys[o] !== 'fn') {
             try {
@@ -393,7 +326,7 @@ function JsBugHuntingHelper () {
 
               if (alreadyProcessedFunctions.indexOf(functionToString) === -1) {
                 // console.log("C", functionToString)
-                searchInside(functionToString, object, objKeys, o, result)
+                searchInside(functionToString, object, objKeys, o, level, result)
                 if (functionToString.indexOf('[object Object]') === -1) {
                   alreadyProcessedFunctions.push(functionToString)
                 }
@@ -422,7 +355,7 @@ function JsBugHuntingHelper () {
     // eslint-disable-next-line no-undef
     // eslint-disable-next-line no-undef
     $('*').each((i, v) => {
-      const elementListeners = getjQueryEventHandlers.call(this, v)
+      const elementListeners = getjQueryEventHandlers(v)
       // console.log(Object.values(elementListeners))
       if (Object.keys(elementListeners).length > 0) {
         jQueryListeners.push(elementListeners)
@@ -631,9 +564,9 @@ function JsBugHuntingHelper () {
     // eslint-disable-next-line no-undef
     let url = $('form').attr('action')
     if (url === '') {
-      url = this.originalWinObj.location.href
+      url = window.location.href
     } else if (url.substr(0, 4) !== 'http') {
-      let b = this.originalWinObj.location.href.split('/').slice(0, -1).join('/')
+      let b = window.location.href.split('/').slice(0, -1).join('/')
       if (url[0] !== '/') {
         b += '/'
       }
