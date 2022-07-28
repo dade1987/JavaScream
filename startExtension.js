@@ -14,7 +14,7 @@
 
   document.body.appendChild(fuzzerSettings)
 
-  fuzzerSettings.innerHTML = '<div><h3>Fuzzer Settings</h3></div><div><input id="xssScanEnabled" type="checkbox" /><label style="padding-left:5px">XSS Scan Enabled</label></div><div><input id="sqliScanEnabled" type="checkbox" /><label style="padding-left:5px">SQLi Scan Enabled</label></div><div><input id="rceScanEnabled" type="checkbox" /><label style="padding-left:5px">RCE Scan Enabled</label></div><div><input id="formFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">FormFuzzer Enabled</label></div>'
+  fuzzerSettings.innerHTML = '<div><h3>Fuzzer Settings</h3></div><div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="attackerIp" type="text" placeholder="Attacker IP" /></div><div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="attackerPort" type="text" placeholder="Attacker Port" /></div><div><input id="xssScanEnabled" type="checkbox" /><label style="padding-left:5px">XSS Scan Enabled</label></div><div><input id="sqliScanEnabled" type="checkbox" /><label style="padding-left:5px">SQLi Scan Enabled</label></div><div><input id="rceScanEnabled" type="checkbox" /><label style="padding-left:5px">RCE Scan Enabled</label></div><div><input id="formFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">FormFuzzer Enabled</label></div>'
 
   const button = document.createElement('button')
   button.innerText = 'SCAN PAGE'
@@ -35,7 +35,9 @@
     const sqliScanEnabled = document.getElementById('sqliScanEnabled').checked
     const rceScanEnabled = document.getElementById('rceScanEnabled').checked
     const formFuzzerEnabled = document.getElementById('formFuzzerEnabled').checked
+    const attackerIp = document.getElementById('attackerIp').value
+    const attackerPort = document.getElementById('attackerPort').value
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort)
   })
 })()

