@@ -689,6 +689,21 @@ function JsBugHuntingHelper () {
     // probabilmente il problema è questo async
     for (const form of Q('form')) {
       const originalParamsLength = $(form).find('input,button,select,textarea').length
+      let url = $(form).attr('action')
+      if (url === undefined || url === '') {
+        url = this.originalWinObj.location.href
+      } else if (url.substr(0, 4) !== 'http') {
+        let b = this.originalWinObj.location.href.split('/').slice(0, -1).join('/')
+        if (url[0] !== '/') {
+          b += '/'
+        }
+        url = b + url
+      }
+      let method = 'GET'
+
+      if ($(form).attr('method') === 'POST' || $(form).attr('method') === 'post' || $(form).attr('method') === '$_POST' || $(form).attr('method') === '$_post') {
+        method = 'POST'
+      }
 
       if (this.xssScanEnabled === true) {
         for (let i = 0; i < originalParamsLength; i++) {
@@ -712,13 +727,24 @@ function JsBugHuntingHelper () {
                     value = $(v2).val()
                   }
                 }
-                tempParams.push({ name: $(v2).attr('name'), value })
+                tempParams.push([$(v2).attr('name'), value])
               }
             })
-            // console.log(tempParams, i, tempParams.length)
-            if (tempParams[i] !== undefined) {
-              tempParams[i].value += payload.payloadString
-              result.push(await sendFormRequest.call(this, form, tempParams, 'XSS', tempParams[i].name))
+
+            const paramsEntities = tempParams
+
+            const r = await new Payload(
+              url,
+              method,
+              paramsEntities,
+              payload.previousAction,
+              payload.payloadString,
+              // eslint-disable-next-line no-useless-escape
+              payload.expectedResult,
+              'RCE'
+            ).isValidResponse()
+            if (r !== false) {
+              result.push(r)
             }
           }
         }
@@ -746,12 +772,24 @@ function JsBugHuntingHelper () {
                     value = $(v2).val()
                   }
                 }
-                tempParams.push({ name: $(v2).attr('name'), value })
+                tempParams.push([$(v2).attr('name'), value])
               }
             })
-            if (tempParams[i] !== undefined) {
-              tempParams[i].value += payload.payloadString
-              result.push(await sendFormRequest.call(this, form, tempParams, 'SQLi', tempParams[i].name))
+
+            const paramsEntities = tempParams
+
+            const r = await new Payload(
+              url,
+              method,
+              paramsEntities,
+              payload.previousAction,
+              payload.payloadString.replace('[ATTACKERIP]', this.attackerIp),
+              // eslint-disable-next-line no-useless-escape
+              payload.expectedResult,
+              'RCE'
+            ).isValidResponse()
+            if (r !== false) {
+              result.push(r)
             }
           }
         }
@@ -779,12 +817,24 @@ function JsBugHuntingHelper () {
                     value = $(v2).val()
                   }
                 }
-                tempParams.push({ name: $(v2).attr('name'), value })
+                tempParams.push([$(v2).attr('name'), value])
               }
             })
-            if (tempParams[i] !== undefined) {
-              tempParams[i].value += payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
-              result.push(await sendFormRequest.call(this, form, tempParams, 'RCE', tempParams[i].name))
+
+            const paramsEntities = tempParams
+
+            const r = await new Payload(
+              url,
+              method,
+              paramsEntities,
+              payload.previousAction,
+              payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
+              // eslint-disable-next-line no-useless-escape
+              payload.expectedResult,
+              'RCE'
+            ).isValidResponse()
+            if (r !== false) {
+              result.push(r)
             }
           }
         }
@@ -794,7 +844,7 @@ function JsBugHuntingHelper () {
     return result.filter((v) => v.paramName !== undefined)
   }
 
-  async function sendFormRequest (form, params, vulnType, modifiedParam) {
+  /* async function sendFormRequest (form, params, vulnType, modifiedParam) {
     let result = {}
     const context = this
     // eslint-disable-next-line no-undef
@@ -873,7 +923,7 @@ function JsBugHuntingHelper () {
       } catch (reason) { console.log(reason) }
     }
     return result
-  }
+  } */
 }
 
 // eslint-disable-next-line no-var, no-unused-vars
