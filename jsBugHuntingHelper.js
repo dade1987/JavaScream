@@ -585,7 +585,7 @@ function JsBugHuntingHelper () {
   /*
   { a: 1,b:3}
   */
-  this.manualAjaxFuzzer = async function (url, method, paramsObject) {
+  /* this.manualAjaxFuzzer = async function (url, method, paramsObject) {
     const result = []
 
     const params2 = Object.entries(paramsObject)
@@ -680,7 +680,7 @@ function JsBugHuntingHelper () {
     }
 
     return result.filter((v) => v.paramName !== undefined)
-  }
+  } */
 
   // fuzz all forms in the webpage
   async function formFuzzer () {
