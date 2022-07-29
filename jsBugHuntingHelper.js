@@ -741,7 +741,7 @@ function JsBugHuntingHelper () {
               payload.payloadString,
               // eslint-disable-next-line no-useless-escape
               payload.expectedResult,
-              'RCE'
+              'XSS'
             ).isValidResponse()
             if (r !== false) {
               result.push(r)
@@ -786,7 +786,7 @@ function JsBugHuntingHelper () {
               payload.payloadString.replace('[ATTACKERIP]', this.attackerIp),
               // eslint-disable-next-line no-useless-escape
               payload.expectedResult,
-              'RCE'
+              'SQL Injection'
             ).isValidResponse()
             if (r !== false) {
               result.push(r)
