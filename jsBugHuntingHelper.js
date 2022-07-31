@@ -54,9 +54,11 @@ function JsBugHuntingHelper () {
     let payload = sqliQuery[q].originalQuery
 
     // addend cycle
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 70; i++) {
       // console.log('i', i)
-      payload += sqliQuery[q].addend
+      if (i > 0) {
+        payload += sqliQuery[q].addend
+      }
 
       // the end of line can be empty, or -- or #
 
@@ -114,6 +116,9 @@ function JsBugHuntingHelper () {
   // eslint-disable-next-line no-unused-vars
   // @return void
   this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled, attackerIp, attackerPort) {
+    document.getElementById('openGuiButton').disabled = true
+    document.getElementById('openGuiButton').innerHTML = 'Loading...'
+
     this.xssScanEnabled = xssScanEnabled
     this.sqlInjectionScanEnabled = sqlInjectionScanEnabled
     this.rceScanEnabled = rceScanEnabled
@@ -128,6 +133,9 @@ function JsBugHuntingHelper () {
     // to do
     // window.wrappedJSObject.manualAjaxFuzzer = this.manualAjaxFuzzer
 
+    let gui = ''
+    let accordionNumber = 0
+
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
     console.log('----------------------------------------------------------')
@@ -135,6 +143,20 @@ function JsBugHuntingHelper () {
 
     console.log('Body Source Suspicious Points'.toUpperCase())
     console.table(searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0))
+
+    accordionNumber++
+    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Body Source Suspicious Points</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse show" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+    gui += '<table class="table table-responsive table-hover">'
+    gui += '<tr><th>Description</th><th>Declaration</th></tr>'
+
+    searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0).forEach((v) => {
+      gui += '<tr><td>' + htmlEntities(v.description) + '</td><td><code>' + htmlEntities(v.declaration) + '</code></td></tr>'
+    })
+
+    gui += '</table>'
+
+    gui += '</div></div></div>'
+
     console.log('----------------------------------------------------------------------------')
     console.log('\n')
 
@@ -143,6 +165,20 @@ function JsBugHuntingHelper () {
     recursiveEnumerate(this.originalWinObj, 0).forEach((v) => {
       console.log(v.description, v.function, v.declaration)
     })
+
+    accordionNumber++
+    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Window Memory Suspicious Points</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+    gui += '<table class="table table-responsive table-hover">'
+    gui += '<tr><th>Description</th><th>Function</th><th>Declaration</th></tr>'
+
+    recursiveEnumerate(this.originalWinObj, 0).forEach((v) => {
+      gui += '<tr><td>' + htmlEntities(v.description) + '</td><td><a href="javascript:console.log(' + v.name + ');alert(\'Look the Console\')">' + htmlEntities(v.name) + '</a></td><td><code>' + htmlEntities(v.declaration) + '</code></td></tr>'
+    })
+
+    gui += '</table>'
+
+    gui += '</div></div></div>'
 
     console.log('----------------------------------------------------------------------------')
     console.log('\n')
@@ -153,42 +189,113 @@ function JsBugHuntingHelper () {
     }) */
 
     console.log('JS Listeners Suspicious Points'.toUpperCase())
+
     recursiveEnumerate(listAllEventListeners.call(this), 0).forEach((v) => {
       console.log(v.description, v.function, v.declaration)
     })
+
+    accordionNumber++
+    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">JS Listeners Suspicious Points</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+    gui += '<table class="table table-responsive table-hover">'
+    gui += '<tr><th>Description</th><th>Function</th><th>Declaration</th></tr>'
+
+    recursiveEnumerate(listAllEventListeners.call(this), 0).forEach((v) => {
+      gui += '<tr><td>' + htmlEntities(v.description) + '</td><td>' + htmlEntities(v.function.name) + '</td><td><code>' + htmlEntities(v.declaration) + '</code></td></tr>'
+    })
+
+    gui += '</table>'
+
+    gui += '</div></div></div>'
 
     console.log('----------------------------------------------------------------------------')
     console.log('\n')
 
     if (window.wrappedJSObject.jQuery !== undefined) {
       console.log('JQuery Listeners Suspicious Points'.toUpperCase())
+
       searchJqueryListeners.call(this).forEach((v) => {
         console.log(v.description, v.function, v.declaration)
       })
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">JQuery Listeners Suspicious Points</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Description</th><th>Function</th><th>Declaration</th></tr>'
+
+      searchJqueryListeners.call(this).forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.description) + '</td><td>' + htmlEntities(v.function.name) + '</td><td><code>' + htmlEntities(v.declaration) + '</code></td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
+
       console.log('----------------------------------------------------------------------------')
       console.log('\n')
 
       console.log('JQuery Document Listeners Suspicious Points'.toUpperCase())
+
       recursiveEnumerate(getjQueryEventHandlers.call(this, document), 0).forEach((v) => {
         console.log(v.description, v.function, v.declaration)
       })
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">JQuery Document Listeners Suspicious Points</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Description</th><th>Function</th><th>Declaration</th></tr>'
+
+      recursiveEnumerate(getjQueryEventHandlers.call(this, document), 0).forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.description) + '</td><td>' + htmlEntities(v.name) + '</td><td><code>' + htmlEntities(v.declaration) + '</code></td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
       console.log('----------------------------------------------------------------------------')
       console.log('\n')
     }
 
     console.log('Cookie'.toUpperCase(), document.cookie)
+
+    accordionNumber++
+    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Cookie</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">' + htmlEntities(document.cookie) + '</div></div></div>'
+
     console.log('----------------------------------------------------------------------------')
     console.log('\n')
 
     const headers = await getPageHeaders(document.location.href)
     console.log('Headers'.toUpperCase(), headers)
+
+    accordionNumber++
+    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Headers</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">' + htmlEntities(headers) + '</div></div></div>'
+
     console.log('----------------------------------------------------------------------------')
     console.log('\n')
 
     if (this.xssScanEnabled === true) {
       console.log('URL XSS Vulnerabilities'.toUpperCase())
+
       const xss = await testXSS()
       console.log(xss)
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">URL XSS Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+      // url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType
+      xss.forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
+
       console.log('Try to test the possible XSS of PHP_SELF in the form')
       console.log('If i have http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level5.php?username=&submit=Submit')
       console.log('i can run this payload: http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level5.php/"><script>alert(1)</script><span class="bho?username=&submit=Submit')
@@ -199,8 +306,25 @@ function JsBugHuntingHelper () {
     }
     if (this.sqlInjectionScanEnabled === true) {
       console.log('URL SQL Injection Vulnerabilities'.toUpperCase())
+
       const sql = await testSqlInjection()
       console.log(sql)
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">URL SQL Injection Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+      // url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType
+      sql.forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
+
       console.log('----------------------------------------------------------------------------')
       console.log('\n')
     }
@@ -208,13 +332,45 @@ function JsBugHuntingHelper () {
       console.log('URL RCE Vulnerabilities'.toUpperCase())
       const rce = await testRCE.call(this)
       console.log(rce)
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">URL RCE Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+      // url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType
+      rce.forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
       console.log('----------------------------------------------------------------------------')
       console.log('\n')
     }
     if (this.formFuzzingEnabled === true) {
       console.log('Form Vulnerabilities'.toUpperCase())
+
       const form = await formFuzzer.call(this)
       console.log(form)
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Form Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+      // url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType
+      form.forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
+
       console.log('----------------------------------------------------------------------------')
       console.log('\n')
     }
@@ -222,6 +378,11 @@ function JsBugHuntingHelper () {
     console.log('----------------------------------------------------------')
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
+
+    $('#guiModal #accordionExample').html(gui)
+
+    document.getElementById('openGuiButton').disabled = false
+    document.getElementById('openGuiButton').innerHTML = 'OPEN GUI BUTTON'
   }
 
   function SearchElement (description, type, string) {
@@ -296,6 +457,10 @@ function JsBugHuntingHelper () {
     /* new SearchElement('HTML Multi Line Comment', 'string', '<!--') */
   ]
 
+  function htmlEntities (str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  }
+
   function getAllUrlParams (url) {
     // get query string from url (optional) or window
     let queryString = url ? url.split('?')[1] : window.location.search.slice(1)
@@ -358,8 +523,19 @@ function JsBugHuntingHelper () {
     return obj
   }
 
+  /**
+ * Gets all event-handlers from a DOM element.
+ * Events with namespace are allowed.
+ *
+ * @param  {Element} node: DOM element
+ * @param  {String} eventns: (optional) name of the event/namespace
+ * @return {Object}
+ */
   function getjQueryEventHandlers (element, eventns) {
     const $ = this.originalWinObj.jQuery
+    // const $ = window.wrappedJSObject.jQuery
+    // const $ = window.jQuery
+    // const $ = jQuery
     const i = (eventns || '').indexOf('.')
     const event = i > -1 ? eventns.substr(0, i) : eventns
     // eslint-disable-next-line no-void
@@ -372,22 +548,44 @@ function JsBugHuntingHelper () {
     const events = event ? [event] : Object.keys(listeners)
     if (!eventns) return listeners // Object with all event types
     events.forEach((type) => {
-      // gets event-handlers by event-type or namespace
+    // gets event-handlers by event-type or namespace
       (listeners[type] || []).forEach(getHandlers, type)
     })
     // eslint-disable-next-line
-      function getHandlers(e) {
+  function getHandlers(e) {
       const type = this.toString()
       const eNamespace = e.namespace || (e.data && e.data.handler)
       // gets event-handlers by event-type or namespace
       if ((event === type && !namespace) ||
-              (eNamespace === namespace && !event) ||
-              (eNamespace === namespace && event === type)) {
+        (eNamespace === namespace && !event) ||
+        (eNamespace === namespace && event === type)) {
         handlers[type] = handlers[type] || []
         handlers[type].push(e)
       }
     }
     return handlers
+  }
+
+  function searchJqueryListeners () {
+    const jQueryListeners = []
+    // eslint-disable-next-line no-undef
+    // eslint-disable-next-line no-undef
+    $('*').each((i, v) => {
+      /* if (v.id === 'div_share_close') {
+        console.log(v)
+      } */
+
+      const elementListeners = getjQueryEventHandlers.call(this, v)
+      // console.log('elementListeners', jQueryListeners)
+
+      // console.log(v)
+      if (Object.keys(elementListeners).length > 0) {
+        jQueryListeners.push(elementListeners)
+      }
+    })
+
+    // console.log('jQueryListeners', jQueryListeners)
+    return recursiveEnumerate(jQueryListeners, 0)
   }
 
   function listAllEventListeners () {
@@ -512,21 +710,6 @@ function JsBugHuntingHelper () {
     recursion(object, level)
     // console.log('2', result)
     return result
-  }
-
-  function searchJqueryListeners () {
-    const jQueryListeners = []
-    // eslint-disable-next-line no-undef
-    // eslint-disable-next-line no-undef
-    $('*').each((i, v) => {
-      const elementListeners = getjQueryEventHandlers.call(this, v)
-      // console.log(Object.values(elementListeners))
-      if (Object.keys(elementListeners).length > 0) {
-        jQueryListeners.push(elementListeners)
-      }
-    })
-    // console.log(jQueryListeners)
-    return recursiveEnumerate(jQueryListeners, 0)
   }
 
   async function getPageHeaders (url) {
