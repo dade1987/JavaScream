@@ -130,6 +130,13 @@ function JsBugHuntingHelper () {
 
     window.wrappedJSObject !== undefined ? this.originalWinObj = window.wrappedJSObject : this.originalWinObj = window
 
+    if (window.wrappedJSObject !== undefined) {
+      // eslint-disable-next-line no-undef
+      window.wrappedJSObject.Mapper = cloneInto(Mapper,
+        window,
+        { cloneFunctions: true })
+    }
+
     // to do
     // window.wrappedJSObject.manualAjaxFuzzer = this.manualAjaxFuzzer
 
@@ -145,7 +152,7 @@ function JsBugHuntingHelper () {
     console.table(searchInside(document.body.innerHTML.replace(/(\r\n|\n|\r)/gm, '').replace(/\s\s+/g, ' '), document.body, ['BODY'], 0))
 
     accordionNumber++
-    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Body Source Suspicious Points</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse show" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Body Source Suspicious Points</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
     gui += '<table class="table table-responsive table-hover">'
     gui += '<tr><th>Description</th><th>Declaration</th></tr>'
 
@@ -170,10 +177,10 @@ function JsBugHuntingHelper () {
     gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Window Memory Suspicious Points</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
 
     gui += '<table class="table table-responsive table-hover">'
-    gui += '<tr><th>Description</th><th>Function</th><th>Declaration</th></tr>'
+    gui += '<tr><th>Description</th><th>Function</th><th>Declaration</th><th>Mapper</th></tr>'
 
     recursiveEnumerate(this.originalWinObj, 0).forEach((v) => {
-      gui += '<tr><td>' + htmlEntities(v.description) + '</td><td><a href="javascript:console.log(' + v.name + ');alert(\'Look the Console\')">' + htmlEntities(v.name) + '</a></td><td><code>' + htmlEntities(v.declaration) + '</code></td></tr>'
+      gui += '<tr><td>' + htmlEntities(v.description) + '</td><td><a href="javascript:console.log(' + v.name + ');alert(\'Look the Console\')">' + htmlEntities(v.name) + '</a></td><td><code>' + htmlEntities(v.declaration) + '</code></td><td><a href="javascript:Mapper(\'' + v.name + '\');alert(\'Look the Console\')">Reverse Map</a></td></tr>'
     })
 
     gui += '</table>'
@@ -816,107 +823,6 @@ function JsBugHuntingHelper () {
     }
     return root.querySelectorAll(selector)
   }
-
-  /* example of paramsObject */
-  /*
-  { a: 1,b:3}
-  */
-  /* this.manualAjaxFuzzer = async function (url, method, paramsObject) {
-    const result = []
-
-    const params2 = Object.entries(paramsObject)
-
-    console.log(params2)
-
-    const originalParamsLength = params2.length
-
-    if (this.xssScanEnabled === true) {
-      for (let i = 0; i < originalParamsLength; i++) {
-      // console.log(params2[i])
-
-        for (const payload of payloadsXSS) {
-        // console.log(payload)
-
-          const tempParams = []
-
-          for (let i = 0; i < originalParamsLength; i++) {
-            const tagName = params2[i][0]
-            const value = params2[i][1]
-
-            tempParams.push({ name: tagName, value })
-          }
-          // console.log(tempParams, i, tempParams.length, tempParams[i])
-
-          if (tempParams[i] !== undefined) {
-            tempParams[i].value += payload.payloadString
-
-            const form = document.createElement('form')
-            form.method = method
-            form.action = url
-            result.push(await sendFormRequest.call(this, form, tempParams, 'XSS', tempParams[i].name))
-          }
-        }
-      }
-    }
-
-    if (this.sqlInjectionScanEnabled === true) {
-      for (let i = 0; i < originalParamsLength; i++) {
-        for (const payload of payloadsSQLi) {
-        // console.log(payload)
-
-          const tempParams = []
-
-          for (let i = 0; i < originalParamsLength; i++) {
-            const tagName = params2[i][0]
-            const value = params2[i][1]
-
-            tempParams.push({ name: tagName, value })
-          }
-          // console.log(tempParams, i, tempParams.length, tempParams[i])
-
-          if (tempParams[i] !== undefined) {
-            tempParams[i].value += payload.payloadString
-
-            const form = document.createElement('form')
-            form.method = method
-            form.action = url
-            result.push(await sendFormRequest.call(this, form, tempParams, 'SQLi', tempParams[i].name))
-          }
-        }
-      }
-    }
-
-    if (this.rceScanEnabled === true) {
-      for (let i = 0; i < originalParamsLength; i++) {
-        for (const payload of payloadsRCE) {
-        // console.log(payload)
-
-          const tempParams = []
-
-          for (let i = 0; i < originalParamsLength; i++) {
-            const tagName = params2[i][0]
-            const value = params2[i][1]
-
-            tempParams.push({ name: tagName, value })
-          }
-          // console.log(tempParams, i, tempParams.length, tempParams[i])
-
-          if (tempParams[i] !== undefined) {
-            tempParams[i].value += payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort)
-
-            const form = document.createElement('form')
-            form.method = method
-            form.action = url
-            result.push(await sendFormRequest.call(this, form, tempParams, 'RCE', tempParams[i].name))
-          }
-        }
-
-      // console.log(result)
-      }
-    }
-
-    return result.filter((v) => v.paramName !== undefined)
-  } */
 
   // fuzz all forms in the webpage
   async function formFuzzer () {

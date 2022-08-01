@@ -1,8 +1,3 @@
-/* eslint-disable no-eval */
-/* eslint-disable */
-// if(!window.jQuery){let a=document.createElement("script");a.src="//cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",document.body.appendChild(a),a.onload=function(){console.log("jQuery Loaded")}}
-/* eslint-enable */
-
 // il payload funziona passando i parametri originali come array con coppia di valori, url e metodo HTTP all'interno
 // e gestisce tutta la richiesta, e testa la risposta
 // eslint-disable-next-line no-unused-vars
