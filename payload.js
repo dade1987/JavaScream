@@ -26,7 +26,7 @@ function Payload (url, httpMethod, params, previousAction, payloadString, expect
         const modParams = JSON.parse(JSON.stringify(this.params))
         modParams[i][1] += payloadString
 
-        console.log(Object.fromEntries(modParams))
+        // console.log(Object.fromEntries(modParams))
 
         // eslint-disable-next-line no-undef
         $.ajax(this.url, {
