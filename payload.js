@@ -24,32 +24,37 @@ function Payload (url, httpMethod, params, previousAction, payloadString, expect
         // si copia i parametri originali, e SOLO nell'indice in cui si trova assegna il payload al parametro
 
         const modParams = JSON.parse(JSON.stringify(this.params))
-        modParams[i][1] += payloadString
 
-        console.log('DBG', Object.fromEntries(modParams))
+        if (modParams[i][0].toLowerCase() !== 'submit') {
+          modParams[i][1] += payloadString
 
-        // eslint-disable-next-line no-undef
-        $.ajax(this.url, {
-          type: this.httpMethod,
-          data: Object.fromEntries(modParams)
-        }).done((data) => {
+          console.log('DBG', modParams[i][0], Object.fromEntries(modParams))
+
+          // eslint-disable-next-line no-undef
+          $.ajax(this.url, {
+            type: this.httpMethod,
+            data: Object.fromEntries(modParams)
+          }).done((data) => {
           // console.log('d', data)
           // console.log('d', this.params, modParams, modParams[i][0], modParams[i][1], this.expectedResult, data)
           // eslint-disable-next-line no-eval
-          eval(this.previousAction)
-          // eslint-disable-next-line no-eval
-          if (eval(this.expectedResult) === true) {
+            eval(this.previousAction)
+            // eslint-disable-next-line no-eval
+            if (eval(this.expectedResult) === true) {
             // console.log('E', true)
-            console.log('DBG', { url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType })
-            resolve({ return: true, url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType })
-          } else {
+              console.log('DBG', { url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType })
+              resolve({ return: true, url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType })
+            } else {
             // console.log('E', false)
-            resolve({ return: false })
-          }
-        }).fail(() => {
+              resolve({ return: false })
+            }
+          }).fail(() => {
           // console.log('E', false)
+            resolve({ return: false })
+          })
+        } else {
           resolve({ return: false })
-        })
+        }
       })
       )
     }
