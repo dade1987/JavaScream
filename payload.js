@@ -26,7 +26,7 @@ function Payload (url, httpMethod, params, previousAction, payloadString, expect
         const modParams = JSON.parse(JSON.stringify(this.params))
         modParams[i][1] += payloadString
 
-        console.log(Object.fromEntries(modParams))
+        console.log('DBG', Object.fromEntries(modParams))
 
         // eslint-disable-next-line no-undef
         $.ajax(this.url, {
@@ -40,6 +40,7 @@ function Payload (url, httpMethod, params, previousAction, payloadString, expect
           // eslint-disable-next-line no-eval
           if (eval(this.expectedResult) === true) {
             // console.log('E', true)
+            console.log('DBG', { return: true, url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType })
             resolve({ return: true, url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType })
           } else {
             // console.log('E', false)
