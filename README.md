@@ -2,7 +2,7 @@
 
 ### This tool is studied to help ethical hackers to find vulnerable points in webpage's javascript.
 
-![JavaScream](https://github.com/dade1987/jsBugHuntingHelper/blob/main/images/JavaScream.jpeg?raw=true)
+![JavaScream](https://github.com/dade1987/jsBugHuntingHelper/blob/main/images/JavaScream01.jpeg?raw=true)
 
 ## HOW TO INSTALL (FIREFOX)
 
