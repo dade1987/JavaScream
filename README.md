@@ -1,10 +1,10 @@
 # JavaScream
 
+###This tool is studied to help ethical hackers to find vulnerable points in webpage's javascript.
+
 ![JavaScream](https://github.com/dade1987/jsBugHuntingHelper/blob/main/images/JavaScream.jpeg?raw=true)
 
-This tool is studied to help ethical hackers to find vulnerable points in webpage's javascript.
-
-EXTENSION METHOD (FIREFOX)
+##HOW TO INSTALL (FIREFOX)
 
 1- clone the project
 ```
