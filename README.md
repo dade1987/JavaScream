@@ -8,7 +8,7 @@
 
 1- clone the project
 ```
-git clone https://github.com/dade1987/jsBugHuntingHelper.git
+git clone https://github.com/dade1987/JavaScream.git
 ```
 
 2- open the url "about:debugging"
