@@ -53,8 +53,8 @@ function JsBugHuntingHelper () {
     // console.log('q', q)
     let payload = sqliQuery[q].originalQuery
 
-    // addend cycle
-    for (let i = 0; i < 70; i++) {
+    // addend cycle (20 loops- double of other famous sql mapper)
+    for (let i = 0; i < 20; i++) {
       // console.log('i', i)
       if (i > 0) {
         payload += sqliQuery[q].addend
