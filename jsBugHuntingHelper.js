@@ -137,6 +137,9 @@ function JsBugHuntingHelper () {
         { cloneFunctions: true })
     }
 
+    removeBootstrapDuplicatedStyles('.fade')
+    removeBootstrapDuplicatedStyles('.collapse')
+
     // to do
     // window.wrappedJSObject.manualAjaxFuzzer = this.manualAjaxFuzzer
 
@@ -733,6 +736,27 @@ function JsBugHuntingHelper () {
         }
       })
     })
+  }
+
+  function removeBootstrapDuplicatedStyles (classToRemove) {
+    // for example .fade
+    if (document.wrappedJSObject !== undefined) {
+    // Loop through the stylesheets...
+      $.each(document.styleSheets, function (_, sheet) {
+      // Loop through the rules...
+        let keepGoing = true
+        $.each(sheet.cssRules || sheet.rules, function (index, rule) {
+        // Is this the rule we want to delete?
+          if (rule.selectorText === classToRemove) {
+          // Yes, do it and stop looping
+            sheet.deleteRule(index)
+            keepGoing = false
+            return keepGoing
+          }
+        })
+        return keepGoing
+      })
+    }
   }
 
   async function testXSS () {
