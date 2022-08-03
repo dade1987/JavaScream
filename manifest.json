@@ -13,7 +13,7 @@
     "content_scripts": [{
         "matches": ["<all_urls>"],
         "css": ["jQuery/css/bootstrap.min.css"],
-        "js": ["jQuery/js/jquery-3.6.0.js", "jQuery/js/bootstrap.bundle.min.js", "payload.js",  "mapper.js",  "jsBugHuntingHelper.js", "startExtension.js"]
+        "js": ["jQuery/js/jquery-3.6.0.js", "jQuery/js/bootstrap.bundle.min.js", "searchElement.js", "payload.js",  "mapper.js",  "jsBugHuntingHelper.js", "startExtension.js"]
     }]
 
 }
