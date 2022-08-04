@@ -20,19 +20,19 @@
   guiView += '</div>'
 
   let javaScreamPupupView = ''
-  javaScreamPupupView += '<div id="jsBugHuntingHelperDiv" style="z-index:1000000;position:fixed;bottom:10px;right:10px;background-color:#e9ecef;border:2px solid black; border-radius:5px; padding:20px;font-size:20px;color:black;font-family:\'-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif\';">'
+  javaScreamPupupView += '<div id="jsBugHuntingHelperDiv" style="z-index:1000000;position:fixed;bottom:10px;right:10px;background-color:#e9ecef;border:2px solid black; border-radius:5px; padding:20px;font-size:16px;color:black;font-family:\'-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif\';">'
 
   javaScreamPupupView += '  <div><h3>Manual Fuzzer</h3></div>'
-  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="manualFuzzerUrl" type="text" placeholder="Full URL https://website.com/file.ext" /></div>'
-  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="manualFuzzerMethod" type="text" placeholder="HTTP Method (GET, POST, ...)" /></div>'
-  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="manualFuzzerParams" type="text" placeholder=\'Params: {"id":"1", "name":"david" } )\' /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="manualFuzzerUrl" type="text" placeholder="Full URL https://website.com/file.ext" /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="manualFuzzerMethod" type="text" placeholder="HTTP Method (GET, POST, ...)" /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="manualFuzzerParams" type="text" placeholder=\'Params: {"id":"1", "name":"david" } )\' /></div>'
 
   javaScreamPupupView += '  <div><h3>Optional Settings</h3></div>'
 
-  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="customCookie" type="text" placeholder="Custom Cookie Value PHPSESSID=123" /></div>'
-  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="customHeaders" type="text" placeholder=\'Additional Headers {"X-Forwarded-For":"203.0.113.195"}\' /></div>'
-  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="attackerIp" type="text" placeholder="Attacker IP" /></div>'
-  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="attackerPort" type="text" placeholder="Attacker Port" /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="customCookie" type="text" placeholder="Custom Cookie Value PHPSESSID=123" /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="customHeaders" type="text" placeholder=\'Additional Headers {"X-Forwarded-For":"203.0.113.195"}\' /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="attackerIp" type="text" placeholder="Attacker IP (RCE, SQLi)" /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="attackerPort" type="text" placeholder="Attacker Port  (RCE, SQLi)" /></div>'
 
   javaScreamPupupView += '  <div><h3>Fuzzer Settings</h3></div>'
 
