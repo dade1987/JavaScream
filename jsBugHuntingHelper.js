@@ -41,7 +41,7 @@ function JsBugHuntingHelper () {
 
   // union based queries
 
-  const unionSelectSQLiResult = "data.indexOf('918273645') !== -1"
+  const unionSelectSQLiResult = "data.indexOf('918273645') !== -1 && data.indexOf('union select') === -1"
   const eof = ['', '--', '#']
 
   const sqliQuery = []
