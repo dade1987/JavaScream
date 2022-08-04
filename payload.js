@@ -1,7 +1,7 @@
 // il payload funziona passando i parametri originali come array con coppia di valori, url e metodo HTTP all'interno
 // e gestisce tutta la richiesta, e testa la risposta
 // eslint-disable-next-line no-unused-vars
-function Payload (url, httpMethod, params, previousAction, payloadString, expectedResult, payloadType) {
+function Payload (url, httpMethod, params, previousAction, payloadString, expectedResult, payloadType, customHeaders) {
   // console.log('a', url, httpMethod, params)
 
   this.url = url
@@ -11,6 +11,7 @@ function Payload (url, httpMethod, params, previousAction, payloadString, expect
   this.payloadString = payloadString
   this.expectedResult = expectedResult
   this.payloadType = payloadType
+  this.customHeaders = customHeaders
 
   // console.log('b', this.params)
   // console.log('c', this.originalParams)
@@ -28,10 +29,12 @@ function Payload (url, httpMethod, params, previousAction, payloadString, expect
         if (modParams[i][0].toLowerCase() !== 'submit') {
           modParams[i][1] += payloadString
 
+          // DGB document.cookie, this.customHeaders
           console.log('DBG', modParams[i][0], Object.fromEntries(modParams))
 
           // eslint-disable-next-line no-undef
           $.ajax(this.url, {
+            headers: this.customHeaders,
             type: this.httpMethod,
             data: Object.fromEntries(modParams)
           }).done((data) => {

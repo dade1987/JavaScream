@@ -20,16 +20,22 @@
   guiView += '</div>'
 
   let javaScreamPupupView = ''
-  javaScreamPupupView += '<div id="jsBugHuntingHelperDiv" style="z-index:1000000;position:fixed;bottom:100px;right:100px;background-color:#e9ecef;border:2px solid black; border-radius:5px; padding:20px;font-size:20px;color:black;font-family:\'-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif\';">'
+  javaScreamPupupView += '<div id="jsBugHuntingHelperDiv" style="z-index:1000000;position:fixed;bottom:10px;right:10px;background-color:#e9ecef;border:2px solid black; border-radius:5px; padding:20px;font-size:20px;color:black;font-family:\'-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif\';">'
 
   javaScreamPupupView += '  <div><h3>Manual Fuzzer</h3></div>'
   javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="manualFuzzerUrl" type="text" placeholder="Full URL https://website.com/file.ext" /></div>'
   javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="manualFuzzerMethod" type="text" placeholder="HTTP Method (GET, POST, ...)" /></div>'
   javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="manualFuzzerParams" type="text" placeholder=\'Params: {"id":"1", "name":"david" } )\' /></div>'
 
-  javaScreamPupupView += '  <div><h3>Fuzzer Settings</h3></div>'
+  javaScreamPupupView += '  <div><h3>Optional Settings</h3></div>'
+
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="customCookie" type="text" placeholder="Custom Cookie Value PHPSESSID=123" /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="customHeaders" type="text" placeholder=\'Additional Headers {"X-Forwarded-For":"203.0.113.195"}\' /></div>'
   javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="attackerIp" type="text" placeholder="Attacker IP" /></div>'
   javaScreamPupupView += '  <div><input style="width:100%;font-size:20px;margin-bottom:20px;" id="attackerPort" type="text" placeholder="Attacker Port" /></div>'
+
+  javaScreamPupupView += '  <div><h3>Fuzzer Settings</h3></div>'
+
   javaScreamPupupView += '  <div><input id="xssScanEnabled" type="checkbox" /><label style="padding-left:5px">XSS Scan Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="sqliScanEnabled" type="checkbox" /><label style="padding-left:5px">SQLi Scan Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="rceScanEnabled" type="checkbox" /><label style="padding-left:5px">RCE Scan Enabled</label></div>'
@@ -54,8 +60,10 @@
     const formFuzzerEnabled = document.getElementById('formFuzzerEnabled').checked
     const attackerIp = document.getElementById('attackerIp').value
     const attackerPort = document.getElementById('attackerPort').value
+    const customCookie = document.getElementById('customCookie').value
+    const customHeaders = document.getElementById('customHeaders').value
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders)
     jBHH.normalScan()
   })
 
@@ -69,8 +77,10 @@
     const manualFuzzerUrl = document.getElementById('manualFuzzerUrl').value
     const manualFuzzerMethod = document.getElementById('manualFuzzerMethod').value
     const manualFuzzerParams = document.getElementById('manualFuzzerParams').value
+    const customCookie = document.getElementById('customCookie').value
+    const customHeaders = document.getElementById('customHeaders').value
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders)
     jBHH.manualFuzzer(manualFuzzerUrl, manualFuzzerMethod, manualFuzzerParams)
   })
 })()
