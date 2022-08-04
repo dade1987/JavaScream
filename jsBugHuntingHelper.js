@@ -25,11 +25,10 @@ function JsBugHuntingHelper () {
   this.customHeaders = ''
 
   const previousXssAction = 'null'
-  const genericXssResult = "data.indexOf('alert(\"XSS_VULNERABLE_PARAM\")') !== -1"
   const payloadsXSS = [
-    { previousAction: previousXssAction, payloadString: '<script>alert("XSS_VULNERABLE_PARAM")</script>', expectedResult: genericXssResult },
-    { previousAction: previousXssAction, payloadString: '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="', expectedResult: genericXssResult },
-    { previousAction: previousXssAction, payloadString: '<svg/onload=alert("XSS_VULNERABLE_PARAM")>', expectedResult: genericXssResult }
+    { previousAction: previousXssAction, payloadString: '<script>alert("XSS_VULNERABLE_PARAM")</script>', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1" },
+    { previousAction: previousXssAction, payloadString: '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1" },
+    { previousAction: previousXssAction, payloadString: '<svg/onload=alert("XSS_VULNERABLE_PARAM")>', expectedResult: "data.indexOf('<svg/onload=alert(\"XSS_VULNERABLE_PARAM\")>') !== -1" }
   ]
 
   const previousErrorBasedSqliAction = 'null'
@@ -476,6 +475,18 @@ function JsBugHuntingHelper () {
     guiEnabled(gui)
   }
 
+  // eslint-disable-next-line no-extend-native
+  String.prototype.hexEncode = function () {
+    let hex = ''
+    let result = ''
+    for (let i = 0; i < this.length; i++) {
+      hex = this.charCodeAt(i).toString(16)
+      result += ('000' + hex).slice(-4)
+    }
+
+    return result
+  }
+
   // eslint-disable-next-line no-unused-vars
   this.manualFuzzer = async function (manualFuzzerUrl, manualFuzzerMethod, manualFuzzerParams) {
     try {
@@ -829,7 +840,7 @@ function JsBugHuntingHelper () {
           'GET',
           paramsEntities,
           payload.previousAction,
-          payload.payloadString,
+          payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
           'XSS',
@@ -857,7 +868,7 @@ function JsBugHuntingHelper () {
           'GET',
           paramsEntities,
           payload.previousAction,
-          payload.payloadString,
+          payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
           'SQL Injection',
@@ -971,7 +982,7 @@ function JsBugHuntingHelper () {
             method,
             paramsEntities,
             payload.previousAction,
-            payload.payloadString,
+            payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
             // eslint-disable-next-line no-useless-escape
             payload.expectedResult,
             'XSS',
@@ -992,7 +1003,7 @@ function JsBugHuntingHelper () {
             method,
             paramsEntities,
             payload.previousAction,
-            payload.payloadString.replace('[ATTACKERIP]', this.attackerIp),
+            payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
             // eslint-disable-next-line no-useless-escape
             payload.expectedResult,
             'SQL Injection',

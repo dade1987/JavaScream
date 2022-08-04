@@ -34,7 +34,7 @@ function Payload (url, httpMethod, params, previousAction, payloadString, expect
 
           // eslint-disable-next-line no-undef
           $.ajax(this.url, {
-            headers: this.customHeaders,
+            // headers: this.customHeaders,
             type: this.httpMethod,
             data: Object.fromEntries(modParams)
           }).done((data) => {
