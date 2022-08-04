@@ -99,7 +99,7 @@ function JsBugHuntingHelper () {
   }
   // payloadsSQLi.forEach((v) => console.log(v.payloadString))
 
-  const previousRceAction = "data = data.replace('echo+TEST_RCE','').replace('echo TEST_RCE','').replace('testRCE.php','').replace(\"'TEST_RCE'\",'')"
+  const previousRceAction = "data = data.replaceAll('echo+TEST_RCE','').replaceAll('echo TEST_RCE','').replaceAll('testRCE.php','').replaceAll(\"'TEST_RCE'\",'')"
   const genericRceResult = "data.indexOf('TEST_RCE') !== -1 && data.indexOf('Uncaught mysqli') === -1"
   const payloadsRCE = [
     { previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/html/testRCE.php && cat /var/www/html/testRCE.php || "', expectedResult: genericRceResult },
