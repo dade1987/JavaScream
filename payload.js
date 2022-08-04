@@ -34,7 +34,7 @@ function Payload (url, httpMethod, params, previousAction, payloadString, expect
 
           // eslint-disable-next-line no-undef
           $.ajax(this.url, {
-            // headers: this.customHeaders,
+            headers: JSON.parse(this.customHeaders),
             type: this.httpMethod,
             data: Object.fromEntries(modParams)
           }).done((data) => {
@@ -94,3 +94,11 @@ console.log(new Payload(
   "(data.indexOf('lalalaTEST_RCElalala') !== -1 && data.indexOf('echo lalalaTEST_RCElalala') === -1)",
   'RCE'
 ).isValidResponse()) */
+
+/* $.ajax(
+  'http://localhost/Vulnerable-Web-Application-master/XSS/XSS_level1.php',
+  {
+    headers: '{}',
+    type: 'POST',
+    data: { username: 'a<script>alert(98765)</script>' }
+  }).done((d) => console.log(d)) */
