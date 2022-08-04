@@ -1,5 +1,9 @@
-31/07/2022
-- stop too much recursions Reverse Mapper (test same things that can generate infinite loops)
+04/08/2022
 - test form input arrays
-- add payloads
 - split classes better
+- add sql injection reverse shell (https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/MySQL%20Injection.md#mysql-out-of-band)
+- add bool and timebased sqli
+- add payloads
+- add custom cookie fuzzer
+- add custom header fuzzer
+- add mysql out of bands query for boolbased injections (https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/MySQL%20Injection.md#mysql-out-of-band)
