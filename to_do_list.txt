@@ -4,6 +4,7 @@
 - add sql injection reverse shell (https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/MySQL%20Injection.md#mysql-out-of-band)
 - add bool and timebased sqli
 - add payloads
-- add custom cookie fuzzer
-- add custom header fuzzer
 - add mysql out of bands query for boolbased injections (https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/MySQL%20Injection.md#mysql-out-of-band)
+- improve speed or use async requests
+- test all, also to find false positives
+- add spider, and get settings from window.localstorage
