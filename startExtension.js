@@ -41,6 +41,9 @@
   javaScreamPupupView += '  <div><input id="rceScanEnabled" type="checkbox" /><label style="padding-left:5px">RCE Scan Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="formFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">FormFuzzer Enabled</label></div>'
 
+  javaScreamPupupView += '  <div><input id="cookiesFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">Cookies Fuzzer Enabled</label></div>'
+  javaScreamPupupView += '  <div><input id="headersFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">Custom Headers Fuzzer Enabled</label></div>'
+
   javaScreamPupupView += '  <div><button id="manualFuzzerButton" type="button" style="background-color: black; border-radius: 5px; padding: 20px; font-size: 20px; color: white; width: 100%;">Manual Fuzz</button></div>'
 
   javaScreamPupupView += '  <div><button id="scanButton" type="button" style="background-color: black; border-radius: 5px; padding: 20px; font-size: 20px; color: white; width: 100%;">Normal Scan</button></div>'
@@ -62,8 +65,10 @@
     const attackerPort = document.getElementById('attackerPort').value
     const customCookie = document.getElementById('customCookie').value
     const customHeaders = document.getElementById('customHeaders').value
+    const cookiesFuzzerEnabled = document.getElementById('cookiesFuzzerEnabled').checked
+    const headersFuzzerEnabled = document.getElementById('headersFuzzerEnabled').checked
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
     jBHH.normalScan()
   })
 
@@ -79,8 +84,10 @@
     const manualFuzzerParams = document.getElementById('manualFuzzerParams').value
     const customCookie = document.getElementById('customCookie').value
     const customHeaders = document.getElementById('customHeaders').value
+    const cookiesFuzzerEnabled = document.getElementById('cookiesFuzzerEnabled').checked
+    const headersFuzzerEnabled = document.getElementById('headersFuzzerEnabled').checked
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
     jBHH.manualFuzzer(manualFuzzerUrl, manualFuzzerMethod, manualFuzzerParams)
   })
 })()

