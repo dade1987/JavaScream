@@ -668,6 +668,50 @@ function JsBugHuntingHelper () {
           }
         }
       }
+      for (const tmp of $(data).find('script')) {
+        if (tmp !== undefined && tmp.src !== undefined) {
+          if (urls.findIndex((element) => element === tmp.src) === -1 /* && tmp[0].indexOf(document.location.origin) !== -1 */) {
+            urls.push(tmp.src)
+            try {
+              console.log('r', tmp.src)
+              await recursion(tmp.src, depth)
+            } catch (e) {}
+          }
+        }
+      }
+      for (const tmp of $(data).find('link')) {
+        if (tmp !== undefined && tmp.href !== undefined) {
+          if (urls.findIndex((element) => element === tmp.href) === -1 /* && tmp[0].indexOf(document.location.origin) !== -1 */) {
+            urls.push(tmp.href)
+            try {
+              console.log('r', tmp.href)
+              await recursion(tmp.href, depth)
+            } catch (e) {}
+          }
+        }
+      }
+      for (const tmp of $(data).find('img')) {
+        if (tmp !== undefined && tmp.src !== undefined) {
+          if (urls.findIndex((element) => element === tmp.src) === -1 /* && tmp[0].indexOf(document.location.origin) !== -1 */) {
+            urls.push(tmp.src)
+            try {
+              console.log('r', tmp.src)
+              await recursion(tmp.src, depth)
+            } catch (e) {}
+          }
+        }
+      }
+      for (const tmp of $(data).find('iframe')) {
+        if (tmp !== undefined && tmp.src !== undefined) {
+          if (urls.findIndex((element) => element === tmp.src) === -1 /* && tmp[0].indexOf(document.location.origin) !== -1 */) {
+            urls.push(tmp.src)
+            try {
+              console.log('r', tmp.src)
+              await recursion(tmp.src, depth)
+            } catch (e) {}
+          }
+        }
+      }
     }
   }
 
