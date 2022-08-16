@@ -821,7 +821,7 @@ function JsBugHuntingHelper () {
     $('#guiModal #accordionExample').html(gui)
 
     document.getElementById('openGuiButton').disabled = false
-    document.getElementById('openGuiButton').innerHTML = 'OPEN GUI BUTTON'
+    document.getElementById('openGuiButton').innerHTML = 'OPEN GUI'
   }
 
   function htmlEntities (str) {

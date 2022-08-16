@@ -21,4 +21,11 @@ git clone https://github.com/dade1987/JavaScream.git
 
 6- look the result in Browser Console (F12)
 
+Docs:
+
+EN: https://docs.google.com/document/d/1AXP0Y9eeiECN3JhCGtkICRXkXwpmPya5BFGR5hW70UU/edit?usp=sharing
+
+IT: https://docs.google.com/document/d/1QmH22YNUPctg664TwQL0Y8qLi_oYq5ZRpa7edH0D8nk/edit?usp=sharing
+
+
 Created by Davide Cavallini - Linkedin: https://www.linkedin.com/in/davidecavallini/
