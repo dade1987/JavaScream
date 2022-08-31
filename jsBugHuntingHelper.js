@@ -367,7 +367,7 @@ function JsBugHuntingHelper () {
     console.log('Cookie'.toUpperCase(), document.cookie)
 
     accordionNumber++
-    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Cookie</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">' + htmlEntities(document.cookie) + '</div></div></div>'
+    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Cookie</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">' + htmlEntities(document.cookie).replaceAll(';', '<br>') + '</div></div></div>'
 
     if (this.cookiesFuzzerEnabled === true) {
       console.log('URL Cookies Vulnerabilities'.toUpperCase())
@@ -397,7 +397,7 @@ function JsBugHuntingHelper () {
     console.log('Headers'.toUpperCase(), headers)
 
     accordionNumber++
-    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Headers</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">' + headers + '</div></div></div>'
+    gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Headers</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">' + htmlEntities(headers).replace(/(?:\r\n|\r|\n)/g, '<br>') + '</div></div></div>'
 
     if (this.headersFuzzerEnabled === true) {
       console.log('URL Headers Vulnerabilities'.toUpperCase())
@@ -1086,7 +1086,7 @@ function JsBugHuntingHelper () {
         type: 'GET',
         url,
         success: function () {
-          resolve(xhr.getAllResponseHeaders().replace(/(?:\r\n|\r|\n)/g, '<br>'))
+          resolve(xhr.getAllResponseHeaders())
         },
         error: function () {
           resolve(false)
