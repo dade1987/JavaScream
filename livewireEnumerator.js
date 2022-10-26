@@ -17,41 +17,32 @@ Object.values(Livewire.components.componentsById).forEach(function(v) {
 Livewire.components.components()
 
 
-let charset = {
-    m: 'abc',
-    n: 123,
-    s: '!#$'
-}
+//https://master--goofy-tereshkova-ff1e2b.netlify.app/docs/alpine-js/
+livewire.find('wzDaqpljO7XDn08cla1b').get('title')
 
-function bruteforce(pattern) {
+livewire.find('wzDaqpljO7XDn08cla1b').set('title', 'test')
 
-    password = ''
+//reference https://laravel-livewire.com/docs/2.x/reference
 
-    for (let i = 0; i < pattern.length; i++) {
-        password += ' ';
+
+Object.values(Livewire.components.componentsById).forEach(function(v) {
+    try {
+        console.log(v.id, v.listeners, v.serverMemo.data, v.serverMemo.dataMeta.models /*, v.lastFreshHtml*/ )
+        console.log(Livewire.find(v.id).get('id'))
+    } catch (e) {
+
     }
-
-    r(pattern, pattern, password)
-
-}
-
-function r(internalPattern, pattern, password)
-
-internalPattern = internalPattern.slice(0, -1)
-
-for (let i = 0; i < charset[internalPattern[0]].length; i++) {
-
-    password[pattern.length - internalPattern.length - 1] = internalCharset[c]
-
-}
-
-r(internalPattern, pattern, password)
-}
+})
 
 
-requestAndCheck(url, params, expectedResponse, ecc)
-    //ajax
-}
+Object.values(Livewire.components.componentsById).forEach(function(v) {
+    try {
+        console.log(v.id, v.listeners, v.serverMemo.data, v.serverMemo.dataMeta.models /*, v.lastFreshHtml*/ )
 
-pattern = 'mmnns';
-bruteforce(pattern)
+        Object.keys(v.serverMemo.data).forEach((k) => {
+            console.log(k, Livewire.find(v.id).get(k))
+        })
+    } catch (e) {}
+})
+
+//livewire.find('id').set() e livewire.find('id').get()
