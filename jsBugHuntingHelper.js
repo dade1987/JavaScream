@@ -10,13 +10,14 @@
 // This tool is studied to help Ethical Hackers to find vulnerable points in webpage's javascript
 // Just open the webpage, select all this code, copy and past in browser's console
 // eslint-disable-next-line no-unused-vars
-function JsBugHuntingHelper () {
+function JsBugHuntingHelper() {
   'use strict'
 
   this.xssScanEnabled = false
   this.sqlInjectionScanEnabled = false
   this.rceScanEnabled = false
   this.formFuzzingEnabled = false
+  this.laravelScannerEnabled = false
   // extensions have a special object called wrappedJSObject to get the original properties of the browser
   this.originalWinObj = {}
   this.attackerIp = ''
@@ -188,20 +189,25 @@ function JsBugHuntingHelper () {
     new SearchElement('Heroku OAuth 2.0', 'regEx', /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/),
 
     new SearchElement('Js One Line Comment', 'string', '//'),
-    new SearchElement('Js Multi Line Comment', 'string', '/*')
+    new SearchElement('Js Multi Line Comment', 'string', '/*'),
     /* new SearchElement('HTML Multi Line Comment', 'string', '<!--') */
+
+    //LARAVEL LIVEWIRE
+    new SearchElement('Livewire Emit', 'string', 'Livewire.emit('),
+    new SearchElement('Livewire Emit', 'string', '$emit('),
   ]
 
   // eslint-disable-next-line no-multiple-empty-lines
   // eslint-disable-next-line no-unused-vars
   // @return void
-  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, formFuzzingEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled) {
+  this.init = async function (xssScanEnabled, sqlInjectionScanEnabled, rceScanEnabled, laravelScanEnabled, formFuzzingEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled) {
     document.getElementById('openGuiButton').disabled = true
     document.getElementById('openGuiButton').innerHTML = 'Loading...'
 
     this.xssScanEnabled = xssScanEnabled
     this.sqlInjectionScanEnabled = sqlInjectionScanEnabled
     this.rceScanEnabled = rceScanEnabled
+    this.laravelScanEnabled = laravelScanEnabled
     this.formFuzzingEnabled = formFuzzingEnabled
     this.attackerIp = attackerIp
     this.attackerPort = attackerPort
@@ -498,6 +504,27 @@ function JsBugHuntingHelper () {
       console.log('----------------------------------------------------------------------------')
       console.log('\n')
     }
+    if (this.laravelScanEnabled === true) {
+      console.log('Laravel Scanner'.toUpperCase())
+      const livewire = await testLivewireComponents.call(this)
+      console.log(livewire)
+
+      accordionNumber++
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Livewire Scanner</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">'
+
+      gui += '<table class="table table-responsive table-hover">'
+      gui += '<tr><th>Livewire Id</th><th>Listeners</th><th>Data</th><th>Models</th></tr>'
+
+      livewire.forEach((v) => {
+        gui += '<tr><td><a href="#" onclick="Livewire.components.componentsById.' + v.id + '">' + htmlEntities(v.id) + '</a></td><td>' + htmlEntities(v.listeners) + '</td><td>' + v.data + '</td><td>' + v.models + '</td></tr>'
+      })
+
+      gui += '</table>'
+
+      gui += '</div></div></div>'
+      console.log('----------------------------------------------------------------------------')
+      console.log('\n')
+    }
     if (this.formFuzzingEnabled === true) {
       console.log('Form Vulnerabilities'.toUpperCase())
 
@@ -651,7 +678,7 @@ function JsBugHuntingHelper () {
     // console.log('SPIDER', urls)
     return urls
 
-    async function recursion (url, depth) {
+    async function recursion(url, depth) {
       const data = await $.get(url)
       // console.log(url, $(data), $(data).find('a'))
 
@@ -664,7 +691,7 @@ function JsBugHuntingHelper () {
             try {
               console.log('r', tmp.href)
               await recursion(tmp.href, depth)
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       }
@@ -675,7 +702,7 @@ function JsBugHuntingHelper () {
             try {
               console.log('r', tmp.src)
               await recursion(tmp.src, depth)
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       }
@@ -686,7 +713,7 @@ function JsBugHuntingHelper () {
             try {
               console.log('r', tmp.href)
               await recursion(tmp.href, depth)
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       }
@@ -697,7 +724,7 @@ function JsBugHuntingHelper () {
             try {
               console.log('r', tmp.src)
               await recursion(tmp.src, depth)
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       }
@@ -708,21 +735,22 @@ function JsBugHuntingHelper () {
             try {
               console.log('r', tmp.src)
               await recursion(tmp.src, depth)
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       }
     }
   }
 
-  function tryRemoteShellLink (v) {
+  function tryRemoteShellLink(v) {
     if (v.payloadType === 'SQL Injection' && v.paramValue.toLowerCase().indexOf('union') !== -1) {
       return '<a href="javascript:trySqliRemoteShell(\'' + btoa(JSON.stringify(v)) + '\')">Try</a>'
     }
     return ''
   }
 
-  async function trySqliRemoteShell (base64v) {
+
+  async function trySqliRemoteShell(base64v) {
     const attackerIp = $('#attackerIp').val()
     const attackerPort = $('#attackerPort').val()
 
@@ -766,8 +794,8 @@ function JsBugHuntingHelper () {
       $('form').each((i, form) => {
         $(form).find('input,button,select,textarea').each((i2, v2) => {
           if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
-          // eslint-disable-next-line no-undef
-          // console.log($(v2).attr('name'), $(v2).val())
+            // eslint-disable-next-line no-undef
+            // console.log($(v2).attr('name'), $(v2).val())
             const tagName = $(v2)[0].tagName
             let value = ''
 
@@ -803,11 +831,11 @@ function JsBugHuntingHelper () {
     }
   }
 
-  function cookieToTouple () {
+  function cookieToTouple() {
     return document.cookie.split(';').map((v) => v.split('='))
   }
 
-  function headersToTouple (headers) {
+  function headersToTouple(headers) {
     let headersObj = {}
     try {
       headersObj = JSON.parse(headers)
@@ -817,18 +845,18 @@ function JsBugHuntingHelper () {
     return Object.entries(headersObj)
   }
 
-  function guiEnabled (gui) {
+  function guiEnabled(gui) {
     $('#guiModal #accordionExample').html(gui)
 
     document.getElementById('openGuiButton').disabled = false
     document.getElementById('openGuiButton').innerHTML = 'OPEN GUI'
   }
 
-  function htmlEntities (str) {
+  function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   }
 
-  function getAllUrlParams (url) {
+  function getAllUrlParams(url) {
     // get query string from url (optional) or window
     let queryString = url ? url.split('?')[1] : window.location.search.slice(1)
 
@@ -898,7 +926,7 @@ function JsBugHuntingHelper () {
  * @param  {String} eventns: (optional) name of the event/namespace
  * @return {Object}
  */
-  function getjQueryEventHandlers (element, eventns) {
+  function getjQueryEventHandlers(element, eventns) {
     const $ = this.originalWinObj.jQuery
     // const $ = window.wrappedJSObject.jQuery
     // const $ = window.jQuery
@@ -915,11 +943,11 @@ function JsBugHuntingHelper () {
     const events = event ? [event] : Object.keys(listeners)
     if (!eventns) return listeners // Object with all event types
     events.forEach((type) => {
-    // gets event-handlers by event-type or namespace
+      // gets event-handlers by event-type or namespace
       (listeners[type] || []).forEach(getHandlers, type)
     })
     // eslint-disable-next-line
-  function getHandlers(e) {
+    function getHandlers(e) {
       const type = this.toString()
       const eNamespace = e.namespace || (e.data && e.data.handler)
       // gets event-handlers by event-type or namespace
@@ -933,7 +961,7 @@ function JsBugHuntingHelper () {
     return handlers
   }
 
-  function searchJqueryListeners () {
+  function searchJqueryListeners() {
     const jQueryListeners = []
     // eslint-disable-next-line no-undef
     // eslint-disable-next-line no-undef
@@ -955,7 +983,7 @@ function JsBugHuntingHelper () {
     return recursiveEnumerate(jQueryListeners, 0)
   }
 
-  function listAllEventListeners () {
+  function listAllEventListeners() {
     const allElements = Array.prototype.slice.call(document.querySelectorAll('*'))
     allElements.push(document)
     allElements.push(this.originalWinObj)
@@ -979,7 +1007,7 @@ function JsBugHuntingHelper () {
     return elements
   }
 
-  function regEx (string, regEx) {
+  function regEx(string, regEx) {
     const index = []
     const regex1 = RegExp(regEx, 'gim')
     const str1 = string
@@ -991,7 +1019,7 @@ function JsBugHuntingHelper () {
     return index
   }
 
-  function getAllIndexes (arr, val) {
+  function getAllIndexes(arr, val) {
     const indexes = []
     let i = -1
     while ((i = arr.indexOf(val, i + 1)) !== -1) {
@@ -1000,7 +1028,7 @@ function JsBugHuntingHelper () {
     return indexes
   }
 
-  function searchInside (functionToString, object, objKeys, o, resultTmp) {
+  function searchInside(functionToString, object, objKeys, o, resultTmp) {
     let result = []
     if (resultTmp !== undefined) {
       result = resultTmp
@@ -1037,8 +1065,8 @@ function JsBugHuntingHelper () {
     }
   }
 
-  function recursiveEnumerate (object, level) {
-    function recursion (object, level) {
+  function recursiveEnumerate(object, level) {
+    function recursion(object, level) {
       level++
       const objKeys = Object.keys(object)
       // console.log("A", object)
@@ -1079,7 +1107,7 @@ function JsBugHuntingHelper () {
     return result
   }
 
-  async function getPageHeaders (url) {
+  async function getPageHeaders(url) {
     return new Promise((resolve, reject) => {
       // eslint-disable-next-line no-undef
       const xhr = $.ajax({
@@ -1095,7 +1123,7 @@ function JsBugHuntingHelper () {
     })
   }
 
-  function removeBootstrapDuplicatedStyles (classToRemove) {
+  function removeBootstrapDuplicatedStyles(classToRemove) {
     // for example .fade
     if (document.wrappedJSObject !== undefined) {
       try {
@@ -1120,7 +1148,7 @@ function JsBugHuntingHelper () {
     }
   }
 
-  async function testCookies () {
+  async function testCookies() {
     const result = []
 
     const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
@@ -1152,7 +1180,7 @@ function JsBugHuntingHelper () {
     return result
   }
 
-  async function testHeaders () {
+  async function testHeaders() {
     const result = []
 
     const paramsEntities = Object.entries(getAllUrlParams(document.location.href))
@@ -1183,7 +1211,7 @@ function JsBugHuntingHelper () {
     return result
   }
 
-  async function testXSS () {
+  async function testXSS() {
     const result = []
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
@@ -1213,7 +1241,7 @@ function JsBugHuntingHelper () {
     return result
   }
 
-  async function testSqlInjection () {
+  async function testSqlInjection() {
     const result = []
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
@@ -1243,7 +1271,40 @@ function JsBugHuntingHelper () {
     return result
   }
 
-  async function testRCE () {
+  async function testLivewireComponents() {
+    const result = []
+    const win = this.originalWinObj;
+    if (win.Livewire !== undefined) {
+      Object.values(win.Livewire.components.componentsById).forEach(function (v) {
+        try {
+          console.log(v.id, v.listeners, v.serverMemo.data, v.serverMemo.dataMeta.models)
+
+          let data = '';
+          Object.entries(v.serverMemo.data).forEach(function (v, i) {
+            data += v[0] + ':' + v[1] + '<br>'
+          })
+
+          let models = '';
+          if (v.serverMemo.dataMeta.models !== undefined) {
+            Object.entries(v.serverMemo.dataMeta.models).forEach(function (v) {
+              Object.entries(v[1]).forEach(function (sv) {
+                models += v[0] + ' - ' + sv[0] + ':' + sv[1] + '<br>'
+              })
+            })
+          }
+          result.push({ 'id': v.id, 'listeners': v.listeners, 'data': data, 'models': models })
+
+        } catch (e) {
+          console.log('Livewire Error', e)
+        }
+
+      })
+      console.log('Livewire Result', result)
+    }
+    return result;
+  }
+
+  async function testRCE() {
     const result = []
     const paramsEntitiesTemp = Object.entries(getAllUrlParams(document.location.href))
     // console.log(paramsEntities)
@@ -1273,7 +1334,7 @@ function JsBugHuntingHelper () {
     return result
   }
 
-  function Q (root, selector) {
+  function Q(root, selector) {
     if (typeof root === 'string') {
       selector = root
       root = document
@@ -1282,7 +1343,7 @@ function JsBugHuntingHelper () {
   }
 
   // fuzz all forms in the webpage
-  async function formLoop () {
+  async function formLoop() {
     let result = []
     // eslint-disable-next-line no-undef
     // probabilmente il problema è questo async
@@ -1308,8 +1369,8 @@ function JsBugHuntingHelper () {
       // eslint-disable-next-line no-undef
       $(form).find('input,button,select,textarea').each((i2, v2) => {
         if ($(v2).attr('name') !== undefined && $(v2).attr('name') !== 'undefined' && $(v2).attr('name') !== '') {
-        // eslint-disable-next-line no-undef
-        // console.log($(v2).attr('name'), $(v2).val())
+          // eslint-disable-next-line no-undef
+          // console.log($(v2).attr('name'), $(v2).val())
           const tagName = $(v2)[0].tagName
           let value = ''
 
@@ -1342,14 +1403,14 @@ function JsBugHuntingHelper () {
     return result.filter((v) => v.paramName !== undefined)
   }
 
-  async function fuzzer (originalParamsLength, url, type, method, paramsEntities) {
+  async function fuzzer(originalParamsLength, url, type, method, paramsEntities) {
     const result = []
 
     for (let i = 0; i < originalParamsLength; i++) {
       for (const payload of payloadsXSS.concat(payloadsSQLi).concat(payloadsRCE)) {
         if ((this.xssScanEnabled === true && payload.type === 'XSS') ||
-        (this.sqlInjectionScanEnabled === true && payload.type === 'SQL Injection') ||
-        (this.rceScanEnabled === true && payload.type === 'RCE')) {
+          (this.sqlInjectionScanEnabled === true && payload.type === 'SQL Injection') ||
+          (this.rceScanEnabled === true && payload.type === 'RCE')) {
           const r = await new Payload(
             url,
             type,

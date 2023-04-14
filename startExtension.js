@@ -43,6 +43,7 @@
   javaScreamPupupView += '  <div><input id="xssScanEnabled" type="checkbox" /><label style="padding-left:5px">XSS Scan Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="sqliScanEnabled" type="checkbox" /><label style="padding-left:5px">SQLi Scan Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="rceScanEnabled" type="checkbox" /><label style="padding-left:5px">RCE Scan Enabled</label></div>'
+  javaScreamPupupView += '  <div><input id="laravelScanEnabled" type="checkbox" /><label style="padding-left:5px">Laravel Scan Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="formFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">FormFuzzer Enabled</label></div>'
 
   javaScreamPupupView += '  <div><input id="cookiesFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">Cookies Fuzzer Enabled</label></div>'
@@ -84,6 +85,7 @@
     const xssScanEnabled = document.getElementById('xssScanEnabled').checked
     const sqliScanEnabled = document.getElementById('sqliScanEnabled').checked
     const rceScanEnabled = document.getElementById('rceScanEnabled').checked
+    const laravelScanEnabled = document.getElementById('laravelScanEnabled').checked
     const formFuzzerEnabled = document.getElementById('formFuzzerEnabled').checked
     const attackerIp = document.getElementById('attackerIp').value
     const attackerPort = document.getElementById('attackerPort').value
@@ -92,7 +94,7 @@
     const cookiesFuzzerEnabled = document.getElementById('cookiesFuzzerEnabled').checked
     const headersFuzzerEnabled = document.getElementById('headersFuzzerEnabled').checked
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
     jBHH.normalScan()
   })
 
@@ -100,6 +102,7 @@
     const xssScanEnabled = document.getElementById('xssScanEnabled').checked
     const sqliScanEnabled = document.getElementById('sqliScanEnabled').checked
     const rceScanEnabled = document.getElementById('rceScanEnabled').checked
+    const laravelScanEnabled = document.getElementById('laravelScanEnabled').checked
     const formFuzzerEnabled = document.getElementById('formFuzzerEnabled').checked
     const attackerIp = document.getElementById('attackerIp').value
     const attackerPort = document.getElementById('attackerPort').value
@@ -111,7 +114,7 @@
     const cookiesFuzzerEnabled = document.getElementById('cookiesFuzzerEnabled').checked
     const headersFuzzerEnabled = document.getElementById('headersFuzzerEnabled').checked
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
     jBHH.manualFuzzer(manualFuzzerUrl, manualFuzzerMethod, manualFuzzerParams)
   })
 
@@ -119,6 +122,7 @@
     const xssScanEnabled = document.getElementById('xssScanEnabled').checked
     const sqliScanEnabled = document.getElementById('sqliScanEnabled').checked
     const rceScanEnabled = document.getElementById('rceScanEnabled').checked
+    const laravelScanEnabled = document.getElementById('laravelScanEnabled').checked
     const formFuzzerEnabled = document.getElementById('formFuzzerEnabled').checked
     const attackerIp = document.getElementById('attackerIp').value
     const attackerPort = document.getElementById('attackerPort').value
@@ -130,7 +134,7 @@
     const cookiesFuzzerEnabled = document.getElementById('cookiesFuzzerEnabled').checked
     const headersFuzzerEnabled = document.getElementById('headersFuzzerEnabled').checked
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
     jBHH.spider()
   })
 })()
