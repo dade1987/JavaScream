@@ -1073,7 +1073,7 @@ function JsBugHuntingHelper() {
 
       for (let o = 0; o < objKeys.length; o++) {
         // imposto massimo livello di ricorsione a 5 per evitare overflows
-        if (level < 5 && object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== '$' && objKeys[o] !== 'location' && objKeys[o] !== 'jQuery' && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
+        if (level < 4 && object[objKeys[o]] !== null && (typeof object[objKeys[o]] === 'function' || typeof object[objKeys[o]] === 'object') && objKeys[o] !== '$' && objKeys[o] !== 'location' && objKeys[o] !== 'jQuery' && objKeys[o] !== 'JsBugHuntingHelper' && objKeys[o] !== 'recursion' && objKeys[o] !== 'recursiveEnumerate' && objKeys[o] !== 'alreadyProcessedFunctions' && objKeys[o] !== 'jsHuntingHelper') {
           // rivedere sta cosa perchè mi elenca solo le funzioni interne
           if (objKeys[o] !== 'fn') {
             try {
@@ -1301,6 +1301,13 @@ function JsBugHuntingHelper() {
       })
       console.log('Livewire Result', result)
     }
+    return result;
+  }
+
+  async function testPassportDictionaryBruteforce() {
+    const result = []
+    const win = this.originalWinObj;
+
     return result;
   }
 
