@@ -161,7 +161,8 @@ function Payload (url, type, httpMethod, params, previousAction, payloadString, 
           headers: Object.fromEntries(modParams),
           type: this.httpMethod,
           data: Object.fromEntries(this.params)
-        }).done((data) => {
+        }).done((data, textStatus, jqXHR) => {
+          const httpStatus = jqXHR.status;
           // eslint-disable-next-line no-eval
           eval(this.previousAction)
           // eslint-disable-next-line no-eval

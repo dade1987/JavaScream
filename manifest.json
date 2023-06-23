@@ -1,19 +1,29 @@
 {
-
     "manifest_version": 2,
     "name": "jsBugBountyHelper",
     "version": "1.0",
-
     "description": "This tool is studied to help ethical hackers to find vulnerable points in webpage's javascript",
-
     "icons": {
         "48": "icons/border-48.png"
     },
-
-    "content_scripts": [{
-        "matches": ["<all_urls>"],
-        "css": ["jQuery/css/bootstrap.min.css"],
-        "js": ["jQuery/js/jquery-3.6.0.js", "jQuery/js/bootstrap.bundle.min.js", "searchElement.js", "payload.js",  "mapper.js",  "jsBugHuntingHelper.js", "startExtension.js"]
-    }]
-
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "css": [
+                "jQuery/css/bootstrap.min.css"
+            ],
+            "js": [
+                "jQuery/js/jquery-3.6.0.js",
+                "jQuery/js/bootstrap.bundle.min.js",
+                "searchElement.js",
+                "payload.js",
+                "mapper.js",
+                "dictionary.js",
+                "jsBugHuntingHelper.js",
+                "startExtension.js"
+            ]
+        }
+    ]
 }

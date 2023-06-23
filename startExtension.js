@@ -26,8 +26,9 @@
 
   javaScreamPupupView += '  <div class="pull-right"><a class="minimizeAction" href="javascript:">MIN</a></div>'
 
-  javaScreamPupupView += '  <div><h3>Manual Fuzzer</h3></div>'
+  javaScreamPupupView += '  <div><h3>Manual Fuzzer / Bruteforcing Url</h3></div>'
   javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="manualFuzzerUrl" type="text" placeholder="Full URL https://website.com/file.ext" /></div>'
+  javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="bruteforcerEmail" type="text" placeholder="Login Email" /></div>'
   javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="manualFuzzerMethod" type="text" placeholder="HTTP Method (GET, POST, ...)" /></div>'
   javaScreamPupupView += '  <div><input style="width:100%;font-size:16px;margin-bottom:20px;" id="manualFuzzerParams" type="text" placeholder=\'Params: {"id":"1", "name":"david" } )\' /></div>'
 
@@ -44,6 +45,7 @@
   javaScreamPupupView += '  <div><input id="sqliScanEnabled" type="checkbox" /><label style="padding-left:5px">SQLi Scan Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="rceScanEnabled" type="checkbox" /><label style="padding-left:5px">RCE Scan Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="laravelScanEnabled" type="checkbox" /><label style="padding-left:5px">Laravel Scan Enabled</label></div>'
+  javaScreamPupupView += '  <div><input id="bruteforcerEnabled" type="checkbox" /><label style="padding-left:5px">Bruteforcer Enabled</label></div>'
   javaScreamPupupView += '  <div><input id="formFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">FormFuzzer Enabled</label></div>'
 
   javaScreamPupupView += '  <div><input id="cookiesFuzzerEnabled" type="checkbox" /><label style="padding-left:5px">Cookies Fuzzer Enabled</label></div>'
@@ -86,6 +88,9 @@
     const sqliScanEnabled = document.getElementById('sqliScanEnabled').checked
     const rceScanEnabled = document.getElementById('rceScanEnabled').checked
     const laravelScanEnabled = document.getElementById('laravelScanEnabled').checked
+    const bruteforcerEnabled = document.getElementById('bruteforcerEnabled').checked
+    const bruteforcerUrl = document.getElementById('manualFuzzerUrl').value
+    const bruteforcerEmail = document.getElementById('bruteforcerEmail').value
     const formFuzzerEnabled = document.getElementById('formFuzzerEnabled').checked
     const attackerIp = document.getElementById('attackerIp').value
     const attackerPort = document.getElementById('attackerPort').value
@@ -94,7 +99,7 @@
     const cookiesFuzzerEnabled = document.getElementById('cookiesFuzzerEnabled').checked
     const headersFuzzerEnabled = document.getElementById('headersFuzzerEnabled').checked
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, bruteforcerEnabled, bruteforcerUrl, bruteforcerEmail, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
     jBHH.normalScan()
   })
 
@@ -103,6 +108,9 @@
     const sqliScanEnabled = document.getElementById('sqliScanEnabled').checked
     const rceScanEnabled = document.getElementById('rceScanEnabled').checked
     const laravelScanEnabled = document.getElementById('laravelScanEnabled').checked
+    const bruteforcerEnabled = document.getElementById('bruteforcerEnabled').checked
+    const bruteforcerUrl = document.getElementById('manualFuzzerUrl').value
+    const bruteforcerEmail = document.getElementById('bruteforcerEmail').value
     const formFuzzerEnabled = document.getElementById('formFuzzerEnabled').checked
     const attackerIp = document.getElementById('attackerIp').value
     const attackerPort = document.getElementById('attackerPort').value
@@ -114,7 +122,7 @@
     const cookiesFuzzerEnabled = document.getElementById('cookiesFuzzerEnabled').checked
     const headersFuzzerEnabled = document.getElementById('headersFuzzerEnabled').checked
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, bruteforcerEnabled, bruteforcerUrl, bruteforcerEmail, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
     jBHH.manualFuzzer(manualFuzzerUrl, manualFuzzerMethod, manualFuzzerParams)
   })
 
@@ -123,6 +131,7 @@
     const sqliScanEnabled = document.getElementById('sqliScanEnabled').checked
     const rceScanEnabled = document.getElementById('rceScanEnabled').checked
     const laravelScanEnabled = document.getElementById('laravelScanEnabled').checked
+    const bruteforcerEnabled = document.getElementById('bruteforcerEnabled').checked
     const formFuzzerEnabled = document.getElementById('formFuzzerEnabled').checked
     const attackerIp = document.getElementById('attackerIp').value
     const attackerPort = document.getElementById('attackerPort').value
@@ -134,7 +143,7 @@
     const cookiesFuzzerEnabled = document.getElementById('cookiesFuzzerEnabled').checked
     const headersFuzzerEnabled = document.getElementById('headersFuzzerEnabled').checked
     // eslint-disable-next-line no-undef
-    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
+    jBHH.init(xssScanEnabled, sqliScanEnabled, rceScanEnabled, laravelScanEnabled, bruteforcerEnabled, formFuzzerEnabled, attackerIp, attackerPort, customCookie, customHeaders, cookiesFuzzerEnabled, headersFuzzerEnabled)
     jBHH.spider()
   })
 })()
