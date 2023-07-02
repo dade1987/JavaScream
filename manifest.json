@@ -21,6 +21,7 @@
                 "payload.js",
                 "mapper.js",
                 "dictionary.js",
+                "laravelAccessibleUrls.js",
                 "jsBugHuntingHelper.js",
                 "startExtension.js"
             ]

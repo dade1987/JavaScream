@@ -527,7 +527,27 @@ function JsBugHuntingHelper() {
       gui += '</div></div></div>';
       console.log('----------------------------------------------------------------------------');
       console.log('\n');
+
+      const laravelAccessibleUrls = await testLaravelAccessibleUrls.call(this);
+      console.log(laravelAccessibleUrls);
+
+      accordionNumber++;
+      gui += '<div class="accordion-item"><h2 class="accordion-header" id="heading' + accordionNumber + '"> <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + accordionNumber + '" aria-expanded="true" aria-controls="collapse' + accordionNumber + '">Laravel Url Finder</button> </h2><div id="collapse' + accordionNumber + '" class="accordion-collapse collapse" aria-labelledby="heading' + accordionNumber + '" data-bs-parent="#accordionExample"><div class="accordion-body">';
+
+      gui += '<table class="table table-responsive table-hover">';
+      gui += '<tr><th>Url Found</th></tr>';
+
+      laravelAccessibleUrls.forEach((v) => {
+        gui += '<tr><td><a href="' + v + '" onclick="Livewire.components.componentsById.' + v + '">' + htmlEntities(v) + '</a></td></tr>';
+      });
+
+      gui += '</table>';
+
+      gui += '</div></div></div>';
+      console.log('----------------------------------------------------------------------------');
+      console.log('\n');
     }
+
     if (this.bruteforcerEnabled === true) {
       console.log('Bruteforcer'.toUpperCase());
       const passwords = await bruteforcePasswords.call(this);
@@ -540,7 +560,7 @@ function JsBugHuntingHelper() {
       gui += '<tr><th>Password Found</th></tr>';
 
       passwords.forEach((password) => {
-        gui += '<tr><td><a href="#">' + htmlEntities(password) + '</a></td></tr>';
+        gui += '<tr><td>' + htmlEntities(password) + '</td></tr>';
       });
 
       gui += '</table>';
@@ -1295,6 +1315,31 @@ function JsBugHuntingHelper() {
     return result;
   }
 
+  async function testLaravelAccessibleUrls() {
+
+    const result = [];
+    const urls = new laravelAccessibleUrls().getUrls();
+
+    for (const url of urls) {
+      try {
+        const data = await $.ajax({
+          url: url,
+          //data: { 'email': this.bruteforcerEmail, 'password': password },
+          //type: 'POST', il metodo può anche cambiare
+        });
+
+        console.log('DONE', data.status == '200');
+
+        if (data.status == '200') {
+          result.push(url);
+        }
+      } catch (error) {
+        console.log('FAIL', error);
+      }
+    }
+    return result;
+  }
+
   async function testLivewireComponents() {
     const result = [];
     const win = this.originalWinObj;
@@ -1329,8 +1374,8 @@ function JsBugHuntingHelper() {
   async function bruteforcePasswords() {
     let foundPasswords = [];
     const dictionary = new Dictionary();
-    const passwords = dictionary.getDictionary().slice(60);
-  
+    const passwords = dictionary.getDictionary();//.slice(60);
+
     for (const password of passwords) {
       try {
         const data = await $.ajax({
@@ -1338,9 +1383,9 @@ function JsBugHuntingHelper() {
           data: { 'email': this.bruteforcerEmail, 'password': password },
           type: 'POST',
         });
-  
+
         console.log('DONE', data.status == '200');
-  
+
         if (data.status == '200') {
           foundPasswords.push(password);
           break; // Termina il ciclo for quando una password viene trovata
@@ -1349,7 +1394,7 @@ function JsBugHuntingHelper() {
         console.log('FAIL', error);
       }
     }
-  
+
     return foundPasswords;
   }
 
