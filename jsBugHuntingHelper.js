@@ -1321,20 +1321,35 @@ function JsBugHuntingHelper() {
     const urls = new laravelAccessibleUrls().getUrls();
 
     for (const url of urls) {
-      try {
-        const data = await $.ajax({
-          url: url,
-          //data: { 'email': this.bruteforcerEmail, 'password': password },
-          //type: 'POST', il metodo può anche cambiare
-        });
 
-        console.log('DONE', data.status == '200');
+      const absoluteUrl = window.location.origin;
+      const pathName = window.location.pathname;
 
-        if (data.status == '200') {
-          result.push(url);
+      const pathNameArray = pathName.split('/');
+
+      console.log(absoluteUrl);
+
+      for (let i = 0; i < pathNameArray.length; i++) {
+
+        const finalPath = pathNameArray.slice(0, i).join('/');
+        const finalUrl = absoluteUrl + finalPath + url;
+
+        console.log(finalUrl);
+
+        try {
+          const data = await $.ajax({
+            url: finalUrl,
+            //data: { 'email': this.bruteforcerEmail, 'password': password },
+            //type: 'POST', il metodo può anche cambiare
+          });
+
+          console.log('DONE');
+
+          result.push(finalUrl);
+
+        } catch (error) {
+          console.log('FAIL', error);
         }
-      } catch (error) {
-        console.log('FAIL', error);
       }
     }
     return result;
