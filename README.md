@@ -28,4 +28,12 @@ EN: https://docs.google.com/document/d/1AXP0Y9eeiECN3JhCGtkICRXkXwpmPya5BFGR5hW7
 IT: https://docs.google.com/document/d/1QmH22YNUPctg664TwQL0Y8qLi_oYq5ZRpa7edH0D8nk/edit?usp=sharing
 
 
-Created by Davide Cavallini - Linkedin: https://www.linkedin.com/in/davidecavallini/
+## Author
+
+Davide Cavallini, Cavallini Service (Noale, Venice, Italy): management software for installation companies and manufacturing SMEs, senior Laravel engineering and application security for software houses.
+
+- Website: https://cavalliniservice.com
+- iTER7, the management system for installation companies (voice-dictated work report, customer signature on the phone): https://cavalliniservice.com/gestionale-per-idraulici-e-termoidraulici
+- Senior Laravel and software security for software houses: https://cavalliniservice.com/senior-laravel-per-software-house
+- LinkedIn: https://www.linkedin.com/in/davidecavallini/
+
